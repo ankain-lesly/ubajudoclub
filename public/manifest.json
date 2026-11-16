@@ -1,0 +1,10 @@
+{
+  "name": "UBa Judo Club",
+  "short_name": "UBa Judo",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#14150F",
+  "theme_color": "#14150F",
+  "icons": [{ "src": "/favicon.ico", "sizes": "48x48", "type": "image/x-icon" }]
+}
+
