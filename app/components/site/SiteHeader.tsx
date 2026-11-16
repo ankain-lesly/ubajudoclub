@@ -1,25 +1,39 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router";
-import { Menu, X, ArrowUpRight } from "lucide-react";
+import { Menu, X, ArrowUpRight, ChevronDown } from "lucide-react";
 import ClubMark from "@/components/visual/ClubMark";
 import ThemeToggle from "@/components/theme/ThemeToggle";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
-const LINKS = [
+const PRIMARY_LINKS = [
   { to: "/", label: "Club" },
   { to: "/schedule", label: "Schedule" },
-  // { to: "/sessions", label: "Sessions" },
   { to: "/events", label: "Events" },
   { to: "/calendar", label: "Calendar" },
-  // { to: "/members", label: "Members" },
-  { to: "/gallery", label: "Gallery" },
-  { to: "/belts", label: "Belts" },
+];
+
+const DOJO_MENU_ITEMS = [
+  { to: "/sessions", label: "Sessions", desc: "Mat syllabus & attendee logs" },
+  { to: "/members", label: "Our Team", desc: "Registered judoka & grades" },
+  { to: "/belts", label: "Belts & Grades", desc: "Kyu–Dan promotion pathway" },
+  { to: "/gallery", label: "Photo Gallery", desc: "Visual mat captures" },
 ];
 
 const SiteHeader = () => {
   const [open, setOpen] = useState(false);
+  const [mobileDojoOpen, setMobileDojoOpen] = useState(true);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+
+  const isDojoActive = DOJO_MENU_ITEMS.some((item) =>
+    location.pathname.startsWith(item.to),
+  );
 
   useEffect(() => setOpen(false), [location.pathname]);
 
@@ -37,7 +51,8 @@ const SiteHeader = () => {
         scrolled
           ? "border-ink/10 bg-background/85 backdrop-blur-xl"
           : "border-transparent bg-background/40 backdrop-blur-sm",
-      )}>
+      )}
+    >
       <div className="mx-auto flex h-[72px] max-w-6xl items-center justify-between px-5 lg:px-8">
         <Link to="/" className="flex items-center gap-3">
           <ClubMark className="h-9 w-9" />
@@ -51,74 +66,161 @@ const SiteHeader = () => {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-1 lg:flex">
-          {LINKS.map((link) => (
+        {/* Desktop Navigation with Dropdown */}
+        <nav className="hidden items-center gap-1 md:flex">
+          {PRIMARY_LINKS.map((link) => (
             <NavLink
               key={link.to}
               to={link.to}
               end={link.to === "/"}
               className={({ isActive }) =>
                 cn(
-                  "rounded-full px-3 py-1.5 text-[12.5px] font-medium transition-colors",
+                  "rounded-full px-3.5 py-2 text-[13px] font-medium transition-colors",
                   isActive
                     ? "bg-ink text-paper"
                     : "text-foreground/70 hover:bg-ink/5 hover:text-foreground",
                 )
-              }>
+              }
+            >
               {link.label}
             </NavLink>
           ))}
+
+          {/* Dojo Dropdown Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-medium transition-colors outline-none",
+                isDojoActive
+                  ? "bg-ink text-paper"
+                  : "text-foreground/70 hover:bg-ink/5 hover:text-foreground",
+              )}
+            >
+              <span>Dojo</span>
+              <ChevronDown className="h-3.5 w-3.5 opacity-60 transition-transform duration-200 group-data-[state=open]:rotate-180" />
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent
+              align="start"
+              sideOffset={8}
+              className="w-56 rounded-xl border border-ink/12 bg-card p-1.5 shadow-xl backdrop-blur-md"
+            >
+              {DOJO_MENU_ITEMS.map((item) => (
+                <DropdownMenuItem
+                  key={item.to}
+                  render={<Link to={item.to} />}
+                  className="flex flex-col items-start gap-0.5 rounded-lg px-3 py-2 text-left transition-colors hover:bg-secondary/60 focus:bg-secondary/60"
+                >
+                  <span className="text-[13px] font-medium text-foreground">
+                    {item.label}
+                  </span>
+                  <span className="font-mono text-[10px] text-muted-foreground">
+                    {item.desc}
+                  </span>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </nav>
 
+        {/* Right Actions */}
         <div className="hidden items-center gap-2 md:flex">
           <ThemeToggle />
           <Link
             to="/login?returnTo=/dashboard"
-            className="rounded-full px-3.5 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground transition-colors hover:text-foreground">
+            className="rounded-full px-4 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground transition-colors hover:text-foreground"
+          >
             Coach login
           </Link>
           <Link
             to="/join"
-            className="group inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-[12.5px] font-semibold text-primary-foreground transition-all hover:bg-primary/90">
+            className="group inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-[13px] font-semibold text-primary-foreground transition-all hover:bg-primary/90"
+          >
             Join a session
             <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
           </Link>
         </div>
 
+        {/* Mobile Hamburger Button */}
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="grid h-10 w-10 place-items-center rounded-full border border-ink/12 lg:hidden"
-          aria-label={open ? "Close menu" : "Open menu"}>
+          className="grid h-10 w-10 place-items-center rounded-full border border-ink/12 md:hidden"
+          aria-label={open ? "Close menu" : "Open menu"}
+        >
           {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
         </button>
       </div>
 
+      {/* Mobile Drawer */}
       {open && (
-        <div className="border-t border-ink/10 bg-background px-5 pb-6 pt-2 lg:hidden">
-          {LINKS.map((link) => (
+        <div className="border-t border-ink/10 bg-background px-5 pb-6 pt-2 md:hidden">
+          {PRIMARY_LINKS.map((link) => (
             <NavLink
               key={link.to}
               to={link.to}
               end={link.to === "/"}
               className={({ isActive }) =>
                 cn(
-                  "block border-b border-ink/8 py-3 font-display text-base",
+                  "block border-b border-ink/8 py-3.5 font-display text-lg",
                   isActive ? "text-primary font-semibold" : "text-foreground",
                 )
-              }>
+              }
+            >
               {link.label}
             </NavLink>
           ))}
+
+          {/* Mobile Dojo Accordion/Section */}
+          <div className="border-b border-ink/8 py-3">
+            <button
+              type="button"
+              onClick={() => setMobileDojoOpen((v) => !v)}
+              className="flex w-full items-center justify-between font-display text-lg text-foreground"
+            >
+              <span>Dojo</span>
+              <ChevronDown
+                className={cn(
+                  "h-4 w-4 text-muted-foreground transition-transform duration-200",
+                  mobileDojoOpen && "rotate-180",
+                )}
+              />
+            </button>
+
+            {mobileDojoOpen && (
+              <div className="mt-2 space-y-1 pl-3">
+                {DOJO_MENU_ITEMS.map((item) => (
+                  <NavLink
+                    key={item.to}
+                    to={item.to}
+                    className={({ isActive }) =>
+                      cn(
+                        "block rounded-lg px-3 py-2 text-sm transition-colors",
+                        isActive
+                          ? "bg-secondary text-primary font-medium"
+                          : "text-muted-foreground hover:text-foreground",
+                      )
+                    }
+                  >
+                    <span className="block font-medium">{item.label}</span>
+                    <span className="block text-[11px] opacity-75">{item.desc}</span>
+                  </NavLink>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="mt-5 flex flex-col gap-2">
             <Link
               to="/join"
-              className="rounded-full bg-primary px-5 py-3 text-center text-sm font-semibold text-primary-foreground">
+              className="rounded-full bg-primary px-5 py-3 text-center text-sm font-semibold text-primary-foreground"
+            >
               Join a session
             </Link>
             <Link
               to="/login?returnTo=/dashboard"
-              className="rounded-full border border-ink/15 px-5 py-3 text-center text-sm font-medium">
+              className="rounded-full border border-ink/15 px-5 py-3 text-center text-sm font-medium"
+            >
               Coach login
             </Link>
             <div className="mt-2 flex items-center justify-between rounded-full border border-ink/12 px-4 py-2">

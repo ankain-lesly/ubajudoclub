@@ -5,7 +5,7 @@ import Aura from "@/components/visual/Aura";
 import SectionBackdrop from "@/components/visual/SectionBackdrop";
 
 const GRIP_IMAGE =
-  "https://media.api.com/images/public/6af95e639c10712cfccdaffc/132f87024_generated_5ca68e15.png";
+  "/images/132f87024_generated_5ca68e15.avif";
 
 const notes = [
   {
@@ -41,7 +41,7 @@ const KumiKata = () => (
           <Image
             src={GRIP_IMAGE}
             alt="Close view of two judoka gripping gi lapel and sleeve — kumi-kata"
-            className="h-[320px] w-full sm:h-[420px] lg:h-[520px]"
+            className="h-[320px] w-full grayscale contrast-105 sm:h-[420px] lg:h-[520px]"
             fittingType="fill"
           />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-band/45 via-transparent to-transparent" />

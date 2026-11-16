@@ -2,7 +2,7 @@ import { Image } from "@/components/ui/image";
 import Reveal from "@/components/visual/Reveal";
 
 const HERO_IMAGE =
-  "https://media.api.com/images/public/6af95e639c10712cfccdaffc/1ea126a4b_generated_image.png";
+  "/images/1ea126a4b_generated_image.avif";
 
 const MatBand = () => (
   <section className="mx-auto max-w-6xl px-5 pt-4 lg:px-8">

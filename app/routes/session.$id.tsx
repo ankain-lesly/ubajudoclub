@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, data } from "react-router";
 import {
   ArrowLeft,
@@ -116,6 +116,28 @@ const SessionDetail = ({ loaderData }: Route.ComponentProps) => {
   const [copied, setCopied] = useState(false);
 
   const firstMedia = session.media?.[0];
+
+  useEffect(() => {
+    if (activeMediaIndex === null) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setActiveMediaIndex(null);
+      } else if (e.key === "ArrowLeft") {
+        setActiveMediaIndex((i) => (i !== null && i > 0 ? i - 1 : i));
+      } else if (e.key === "ArrowRight") {
+        setActiveMediaIndex((i) =>
+          i !== null && session.media && i < session.media.length - 1 ? i + 1 : i,
+        );
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [activeMediaIndex, session.media]);
 
   const handleShare = async () => {
     try {
@@ -298,47 +320,66 @@ const SessionDetail = ({ loaderData }: Route.ComponentProps) => {
             </div>
           </div>
 
-          {/* Media gallery strip */}
-          <div>
-            <div className="flex items-center justify-between">
+        </div>
+
+        {/* Prominent Large Media Cards Section */}
+        {session.media && session.media.length > 0 && (
+          <div className="mt-16 border-t border-ink/10 pt-14">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <p className="font-mono text-[10px] uppercase tracking-[0.32em] text-primary">
-                  Media Archive
+                  Visual Archive & Mat Captures
                 </p>
-                <h3 className="mt-1 font-display text-xl font-semibold">
-                  Mat Captures ({session.media?.length || 0})
-                </h3>
+                <h2 className="mt-2 font-display text-2xl font-semibold tracking-[-0.02em] sm:text-3xl">
+                  Session Photography ({session.media.length})
+                </h2>
               </div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
+                Click any frame for interactive fullscreen preview
+              </p>
             </div>
 
-            {session.media && session.media.length > 0 ? (
-              <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2">
-                {session.media.map((item, idx) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => setActiveMediaIndex(idx)}
-                    className="group relative block aspect-video w-full overflow-hidden rounded-lg border border-ink/10 bg-band text-left"
-                  >
+            <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {session.media.map((item, idx) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setActiveMediaIndex(idx)}
+                  className="group relative flex flex-col overflow-hidden rounded-2xl border border-ink/12 bg-card text-left transition-all duration-300 hover:-translate-y-1 hover:border-ink/30 hover:shadow-2xl"
+                >
+                  <div className="relative aspect-[16/10] w-full overflow-hidden bg-band">
                     <Image
-                      src={item.url}
-                      alt={item.caption || "Mat capture"}
-                      className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      src={item.thumbnail_url || item.url}
+                      alt={item.caption || `Capture frame ${idx + 1}`}
+                      className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                     />
-                    <div className="absolute inset-0 bg-band/30 opacity-0 transition-opacity group-hover:opacity-100" />
-                    <span className="absolute bottom-2 left-2 right-2 truncate font-mono text-[8px] uppercase tracking-[0.14em] text-band-foreground opacity-0 transition-opacity group-hover:opacity-100">
-                      Frame {idx + 1}
+                    <div className="absolute inset-0 bg-gradient-to-t from-band/80 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+                    <span className="absolute right-3.5 top-3.5 grid h-9 w-9 place-items-center rounded-full bg-band/75 text-band-foreground backdrop-blur-md transition-transform duration-300 group-hover:scale-110">
+                      <Camera className="h-4 w-4" />
                     </span>
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="mt-6 rounded-lg border border-ink/8 p-8 text-center text-xs text-muted-foreground">
-                No archived photos for this date.
-              </div>
-            )}
+                    <span className="absolute bottom-3 left-3 rounded-full border border-band-foreground/20 bg-band/70 px-2.5 py-0.5 font-mono text-[8.5px] uppercase tracking-[0.16em] text-band-foreground backdrop-blur-sm">
+                      Frame {String(idx + 1).padStart(2, "0")}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-1 flex-col justify-between p-5">
+                    <p className="text-[13.5px] font-medium leading-snug text-foreground/90 transition-colors group-hover:text-primary">
+                      {item.caption || "Mat work & tactical sequence demonstration"}
+                    </p>
+                    <div className="mt-4 flex items-center justify-between border-t border-ink/8 pt-3 text-[11px] text-muted-foreground">
+                      <span className="font-mono uppercase tracking-[0.14em]">
+                        {item.media_type}
+                      </span>
+                      <span className="font-medium text-primary group-hover:underline">
+                        Expand photo →
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Other Sessions Carousel/Preview */}
         {others.length > 0 && (
@@ -386,42 +427,61 @@ const SessionDetail = ({ loaderData }: Route.ComponentProps) => {
         )}
       </section>
 
-      {/* Lightbox Modal for Media Viewing */}
-      {activeMediaIndex !== null && session.media && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-band/95 p-4 backdrop-blur-md">
-          <div className="mx-auto flex w-full max-w-5xl items-center justify-between text-band-foreground">
-            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-band-foreground/60">
-              Frame {activeMediaIndex + 1} of {session.media.length}
-            </p>
+      {/* High-Visibility Fullscreen Preview Modal */}
+      {activeMediaIndex !== null && session.media && session.media[activeMediaIndex] && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          className="fixed inset-0 z-50 flex flex-col justify-between bg-black/92 p-4 backdrop-blur-xl sm:p-6"
+          onClick={() => setActiveMediaIndex(null)}
+        >
+          {/* Header Bar */}
+          <div
+            className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center gap-3">
+              <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 font-mono text-[9px] uppercase tracking-[0.2em] text-white">
+                Frame {activeMediaIndex + 1} / {session.media.length}
+              </span>
+              <span className="hidden font-mono text-[10px] text-white/50 sm:inline">
+                Use ← → arrow keys to navigate, Esc to close
+              </span>
+            </div>
+
             <button
               type="button"
               onClick={() => setActiveMediaIndex(null)}
-              className="grid h-10 w-10 place-items-center rounded-full border border-band-foreground/20 text-band-foreground hover:bg-band-foreground/10"
+              className="grid h-11 w-11 place-items-center rounded-full border border-white/20 bg-white/10 text-white transition-all hover:scale-105 hover:bg-white/20"
               aria-label="Close modal"
             >
-              <X className="h-4 w-4" />
+              <X className="h-5 w-5" />
             </button>
           </div>
 
-          <div className="relative mx-auto flex w-full max-w-5xl flex-1 items-center justify-center gap-4 py-4">
+          {/* Centered Image with Lateral Controls */}
+          <div
+            className="relative mx-auto flex w-full max-w-6xl flex-1 items-center justify-center gap-2 py-4 sm:gap-6"
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               type="button"
               disabled={activeMediaIndex === 0}
-              onClick={() => setActiveMediaIndex((i) => (i !== null ? Math.max(0, i - 1) : 0))}
-              className="grid h-10 w-10 place-items-center rounded-full border border-band-foreground/20 text-band-foreground disabled:opacity-20"
+              onClick={() => setActiveMediaIndex((i) => (i !== null && i > 0 ? i - 1 : i))}
+              className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-white/20 bg-white/10 text-white shadow-xl transition-all hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-20"
               aria-label="Previous photo"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronLeft className="h-6 w-6" />
             </button>
 
-            <figure className="flex max-h-[75vh] flex-col items-center">
+            <figure className="flex max-h-[80vh] w-full flex-col items-center justify-center">
               <Image
                 src={session.media[activeMediaIndex].url}
                 alt={session.media[activeMediaIndex].caption || "Session Photo"}
-                className="max-h-[65vh] w-auto max-w-full rounded-lg object-contain shadow-2xl"
+                className="max-h-[70vh] w-auto max-w-full rounded-xl object-contain shadow-2xl ring-1 ring-white/10"
               />
               {session.media[activeMediaIndex].caption && (
-                <figcaption className="mt-4 text-center text-sm text-band-foreground/80">
+                <figcaption className="mt-4 max-w-2xl text-center text-sm font-medium leading-relaxed text-white/90">
                   {session.media[activeMediaIndex].caption}
                 </figcaption>
               )}
@@ -432,14 +492,42 @@ const SessionDetail = ({ loaderData }: Route.ComponentProps) => {
               disabled={activeMediaIndex === session.media.length - 1}
               onClick={() =>
                 setActiveMediaIndex((i) =>
-                  i !== null ? Math.min(session.media!.length - 1, i + 1) : 0,
+                  i !== null && session.media && i < session.media.length - 1
+                    ? i + 1
+                    : i,
                 )
               }
-              className="grid h-10 w-10 place-items-center rounded-full border border-band-foreground/20 text-band-foreground disabled:opacity-20"
+              className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-white/20 bg-white/10 text-white shadow-xl transition-all hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-20"
               aria-label="Next photo"
             >
-              <ChevronRight className="h-4 w-4" />
+              <ChevronRight className="h-6 w-6" />
             </button>
+          </div>
+
+          {/* Footer Thumbnails Strip */}
+          <div
+            className="relative z-10 mx-auto flex w-full max-w-4xl justify-center gap-2 overflow-x-auto py-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {session.media.map((thumb, idx) => (
+              <button
+                key={thumb.id}
+                type="button"
+                onClick={() => setActiveMediaIndex(idx)}
+                className={cn(
+                  "relative h-14 w-20 shrink-0 overflow-hidden rounded-lg border transition-all",
+                  activeMediaIndex === idx
+                    ? "border-primary ring-2 ring-primary"
+                    : "border-white/20 opacity-50 hover:opacity-100",
+                )}
+              >
+                <Image
+                  src={thumb.thumbnail_url || thumb.url}
+                  alt={thumb.caption || `Thumbnail ${idx + 1}`}
+                  className="h-full w-full object-cover"
+                />
+              </button>
+            ))}
           </div>
         </div>
       )}

@@ -56,12 +56,12 @@ export function meta(): Route.MetaDescriptors {
   ];
 }
 
-// Applies the saved (or device) colour scheme before first paint.
-const THEME_SCRIPT = `(function(){try{var s=localStorage.getItem('uba-theme');var d=s?s==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.classList.toggle('dark',d);document.documentElement.style.colorScheme=d?'dark':'light';}catch(e){}})();`;
+// Applies the saved (or device) colour scheme before first paint. Defaults to dark.
+const THEME_SCRIPT = `(function(){try{var s=localStorage.getItem('uba-theme');var d=s?s==='dark':true;document.documentElement.classList.toggle('dark',d);document.documentElement.style.colorScheme=d?'dark':'light';}catch(e){}})();`;
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" className="dark" style={{ colorScheme: "dark" }} suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />

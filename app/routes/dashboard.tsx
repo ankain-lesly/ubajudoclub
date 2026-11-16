@@ -367,7 +367,7 @@ const Dashboard = () => {
               }}
             />
           ) : (
-            <RequestsPanel />
+            <RequestsPanel onMemberAdded={reload} />
           )}
         </main>
       </div>
