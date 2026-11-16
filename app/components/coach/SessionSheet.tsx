@@ -1,5 +1,14 @@
-import { useEffect, useState } from "react";
-import { Loader2, Calendar, Clock, Users, BookOpen, CheckCircle2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import {
+  Loader2,
+  Calendar,
+  Clock,
+  Users,
+  BookOpen,
+  CheckCircle2,
+  UploadCloud,
+  X,
+} from "lucide-react";
 import {
   Sheet,
   SheetContent,
@@ -12,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Member, TrainingSession } from "@/lib/types";
+import { SessionMediaPanel } from "./SessionMediaPanel";
 
 interface SessionSheetProps {
   open: boolean;
@@ -24,7 +34,9 @@ interface SessionSheetProps {
     focus: string;
     notes: string;
     coordinatorIds: string[];
+    stagedFiles?: File[];
   }) => Promise<void>;
+  onMediaChanged?: () => Promise<void> | void;
 }
 
 export function SessionSheet({
@@ -33,13 +45,16 @@ export function SessionSheet({
   members,
   onClose,
   onSave,
+  onMediaChanged,
 }: SessionSheetProps) {
+  const stagedInputRef = useRef<HTMLInputElement | null>(null);
   const [dateStr, setDateStr] = useState(new Date().toISOString().split("T")[0]);
   const [startTimeStr, setStartTimeStr] = useState("17:00");
   const [endTimeStr, setEndTimeStr] = useState("19:00");
   const [focus, setFocus] = useState("");
   const [notes, setNotes] = useState("");
   const [selectedCoordinators, setSelectedCoordinators] = useState<string[]>([]);
+  const [stagedFiles, setStagedFiles] = useState<File[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -68,6 +83,7 @@ export function SessionSheet({
       setNotes("");
       setSelectedCoordinators([]);
     }
+    setStagedFiles([]);
     setError("");
   }, [session, open]);
 
@@ -75,6 +91,19 @@ export function SessionSheet({
     setSelectedCoordinators((prev) =>
       prev.includes(memberId) ? prev.filter((id) => id !== memberId) : [...prev, memberId],
     );
+  };
+
+  const handleStagedFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const valid = Array.from(e.target.files).filter(
+        (f) => f.type.startsWith("image/") || f.type.startsWith("video/"),
+      );
+      setStagedFiles((prev) => [...prev, ...valid]);
+    }
+  };
+
+  const removeStagedFile = (idx: number) => {
+    setStagedFiles((prev) => prev.filter((_, i) => i !== idx));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -91,6 +120,7 @@ export function SessionSheet({
         focus: focus.trim(),
         notes: notes.trim(),
         coordinatorIds: selectedCoordinators,
+        stagedFiles: !isEditing ? stagedFiles : undefined,
       });
       onClose();
     } catch (err: any) {
@@ -102,14 +132,17 @@ export function SessionSheet({
 
   return (
     <Sheet open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
-      <SheetContent side="right" className="w-full sm:max-w-md bg-card border-l border-ink/12 overflow-y-auto">
+      <SheetContent
+        side="right"
+        className="w-full sm:max-w-md bg-card border-l border-ink/12 overflow-y-auto"
+      >
         <form onSubmit={handleSubmit} className="flex flex-col h-full">
           <SheetHeader className="border-b border-ink/10 pb-5">
             <SheetTitle className="font-display text-xl tracking-[-0.02em]">
               {isEditing ? "Edit Training Session" : "Schedule Training Session"}
             </SheetTitle>
             <SheetDescription className="text-[13px] text-muted-foreground">
-              Define the syllabus focus, session schedule, and tatami coordinators.
+              Define the syllabus focus, session schedule, coordinators, and media.
             </SheetDescription>
           </SheetHeader>
 
@@ -121,7 +154,10 @@ export function SessionSheet({
             )}
 
             <div className="space-y-1.5">
-              <Label htmlFor="session_date" className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
+              <Label
+                htmlFor="session_date"
+                className="text-xs font-mono uppercase tracking-wider text-muted-foreground"
+              >
                 Session Date *
               </Label>
               <Input
@@ -136,7 +172,10 @@ export function SessionSheet({
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <Label htmlFor="start_time" className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
+                <Label
+                  htmlFor="start_time"
+                  className="text-xs font-mono uppercase tracking-wider text-muted-foreground"
+                >
                   Start Time *
                 </Label>
                 <Input
@@ -150,7 +189,10 @@ export function SessionSheet({
               </div>
 
               <div className="space-y-1.5">
-                <Label htmlFor="end_time" className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
+                <Label
+                  htmlFor="end_time"
+                  className="text-xs font-mono uppercase tracking-wider text-muted-foreground"
+                >
                   End Time
                 </Label>
                 <Input
@@ -164,7 +206,10 @@ export function SessionSheet({
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="focus" className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
+              <Label
+                htmlFor="focus"
+                className="text-xs font-mono uppercase tracking-wider text-muted-foreground"
+              >
                 Syllabus & Focus
               </Label>
               <Input
@@ -180,11 +225,15 @@ export function SessionSheet({
             <div className="space-y-1.5">
               <Label className="text-xs font-mono uppercase tracking-wider text-muted-foreground flex items-center justify-between">
                 <span>Coordinators on Mat</span>
-                <span className="text-[10px] text-primary">{selectedCoordinators.length} selected</span>
+                <span className="text-[10px] text-primary">
+                  {selectedCoordinators.length} selected
+                </span>
               </Label>
-              <div className="max-h-40 overflow-y-auto rounded-md border border-input bg-background p-2 space-y-1">
+              <div className="max-h-36 overflow-y-auto rounded-md border border-input bg-background p-2 space-y-1">
                 {members.length === 0 && (
-                  <p className="text-xs text-muted-foreground p-2 text-center">No athletes registered yet.</p>
+                  <p className="text-xs text-muted-foreground p-2 text-center">
+                    No athletes registered yet.
+                  </p>
                 )}
                 {members.map((m) => {
                   const isChecked = selectedCoordinators.includes(m.id);
@@ -200,7 +249,9 @@ export function SessionSheet({
                         className="rounded border-ink/20 text-primary focus:ring-primary h-3.5 w-3.5"
                       />
                       <span className="font-medium flex-1">{m.full_name}</span>
-                      <span className="font-mono text-[10px] text-muted-foreground">{m.belt_rank}</span>
+                      <span className="font-mono text-[10px] text-muted-foreground">
+                        {m.belt_rank}
+                      </span>
                     </label>
                   );
                 })}
@@ -208,26 +259,98 @@ export function SessionSheet({
             </div>
 
             <div className="space-y-1.5">
-              <Label htmlFor="session_notes" className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
+              <Label
+                htmlFor="session_notes"
+                className="text-xs font-mono uppercase tracking-wider text-muted-foreground"
+              >
                 Session Notes
               </Label>
               <textarea
                 id="session_notes"
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                placeholder="Key technical points covered, injuries or attendance announcements..."
-                rows={3}
+                placeholder="Key technical points covered, injuries or announcements..."
+                rows={2}
                 className="w-full rounded-md border border-input bg-background p-2.5 text-xs outline-none focus:ring-1 focus:ring-primary resize-none"
               />
+            </div>
+
+            {/* Media Upload Section inside Sheet */}
+            <div className="pt-2 border-t border-ink/10">
+              {isEditing && session?.id ? (
+                <SessionMediaPanel
+                  sessionId={session.id}
+                  media={session.media || []}
+                  onMediaChanged={onMediaChanged}
+                  compact={true}
+                />
+              ) : (
+                <div className="space-y-2">
+                  <Label className="text-xs font-mono uppercase tracking-wider text-muted-foreground">
+                    Session Media Upload
+                  </Label>
+                  <input
+                    ref={stagedInputRef}
+                    type="file"
+                    multiple
+                    accept="image/*,video/*"
+                    className="hidden"
+                    onChange={handleStagedFiles}
+                  />
+                  <div
+                    onClick={() => stagedInputRef.current?.click()}
+                    className="cursor-pointer rounded-lg border border-dashed border-ink/15 bg-secondary/20 p-3.5 text-center hover:bg-secondary/30 transition-colors"
+                  >
+                    <UploadCloud className="mx-auto h-4 w-4 text-primary" />
+                    <p className="mt-1 text-xs font-medium">Select media files to upload</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      Photos and clips will automatically upload when session is scheduled
+                    </p>
+                  </div>
+                  {stagedFiles.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {stagedFiles.map((f, i) => (
+                        <span
+                          key={i}
+                          className="inline-flex items-center gap-1 rounded bg-secondary px-2 py-0.5 text-[10px]"
+                        >
+                          <span className="truncate max-w-[120px]">{f.name}</span>
+                          <button
+                            type="button"
+                            onClick={() => removeStagedFile(i)}
+                            className="text-muted-foreground hover:text-destructive"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
           <SheetFooter className="border-t border-ink/10 pt-4 flex gap-2 sm:justify-end">
-            <Button type="button" variant="outline" onClick={onClose} disabled={saving} className="text-xs">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              disabled={saving}
+              className="text-xs"
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={saving} className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs">
-              {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> : <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />}
+            <Button
+              type="submit"
+              disabled={saving}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs"
+            >
+              {saving ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" />
+              ) : (
+                <CheckCircle2 className="w-3.5 h-3.5 mr-1.5" />
+              )}
               {isEditing ? "Update Session" : "Schedule Session"}
             </Button>
           </SheetFooter>

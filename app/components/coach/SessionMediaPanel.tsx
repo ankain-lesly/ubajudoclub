@@ -1,201 +1,293 @@
-import { useState } from "react";
-import { Image as ImageIcon, Video, Plus, Trash2, Loader2, ExternalLink } from "lucide-react";
+import { useRef, useState } from "react";
+import {
+  Image as ImageIcon,
+  Video,
+  UploadCloud,
+  Trash2,
+  Loader2,
+  ExternalLink,
+  Plus,
+  Film,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import type { SessionMedia } from "@/lib/types";
+import {
+  uploadMultipleSessionMedia,
+  deleteSessionMedia,
+} from "@/lib/supabase/storage";
 
 interface SessionMediaPanelProps {
   sessionId: string;
   media: SessionMedia[];
-  onAddMedia: (data: {
-    sessionId: string;
-    url: string;
-    mediaType: "IMAGE" | "VIDEO";
-    caption?: string;
-    publicId?: string;
-  }) => Promise<void>;
-  onDeleteMedia: (mediaId: string) => Promise<void>;
+  onMediaChanged?: () => Promise<void> | void;
+  /**
+   * Optional compact mode for smaller containers like Sheet
+   */
+  compact?: boolean;
 }
 
 export function SessionMediaPanel({
   sessionId,
   media,
-  onAddMedia,
-  onDeleteMedia,
+  onMediaChanged,
+  compact = false,
 }: SessionMediaPanelProps) {
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [url, setUrl] = useState("");
-  const [caption, setCaption] = useState("");
-  const [mediaType, setMediaType] = useState<"IMAGE" | "VIDEO">("IMAGE");
-  const [publicId, setPublicId] = useState("");
-  const [saving, setSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(
+    null,
+  );
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!url.trim()) return;
-    setSaving(true);
+  const handleFiles = async (files: FileList | File[]) => {
+    if (!sessionId) {
+      setErrorMessage("Please save the session first before attaching media.");
+      return;
+    }
+
+    const fileArray = Array.from(files).filter(
+      (f) => f.type.startsWith("image/") || f.type.startsWith("video/"),
+    );
+
+    if (fileArray.length === 0) {
+      setErrorMessage("Please select valid image or video files.");
+      return;
+    }
+
+    setUploading(true);
+    setErrorMessage(null);
+    setUploadProgress({ current: 0, total: fileArray.length });
+
     try {
-      await onAddMedia({
-        sessionId,
-        url: url.trim(),
-        mediaType,
-        caption: caption.trim() || undefined,
-        publicId: publicId.trim() || undefined,
+      await uploadMultipleSessionMedia(sessionId, fileArray, (done, total) => {
+        setUploadProgress({ current: done, total });
       });
-      setUrl("");
-      setCaption("");
-      setPublicId("");
-      setShowAddForm(false);
+
+      if (onMediaChanged) {
+        await onMediaChanged();
+      }
+    } catch (err: any) {
+      console.error("Media upload error:", err);
+      setErrorMessage(err?.message || "Failed to upload one or more files.");
     } finally {
-      setSaving(false);
+      setUploading(false);
+      setUploadProgress(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
-  const handleDelete = async (id: string) => {
-    setDeletingId(id);
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      handleFiles(e.target.files);
+    }
+  };
+
+  const handleDelete = async (item: SessionMedia) => {
+    if (!confirm(`Delete this ${item.media_type.toLowerCase()}?`)) return;
+    setDeletingId(item.id);
+    setErrorMessage(null);
     try {
-      await onDeleteMedia(id);
+      await deleteSessionMedia(item.id, item.public_id);
+      if (onMediaChanged) {
+        await onMediaChanged();
+      }
+    } catch (err: any) {
+      console.error("Delete media error:", err);
+      setErrorMessage(err?.message || "Failed to delete media.");
     } finally {
       setDeletingId(null);
     }
   };
 
+  const onDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const onDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFiles(e.dataTransfer.files);
+    }
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-3.5">
+      {/* Header and File Selection Button */}
       <div className="flex items-center justify-between">
         <div>
-          <h4 className="font-display text-sm font-semibold text-foreground">
+          <h4
+            className={
+              compact
+                ? "font-display text-xs font-semibold text-foreground"
+                : "font-display text-sm font-semibold text-foreground"
+            }
+          >
             Session Media ({media.length})
           </h4>
           <p className="text-[11px] text-muted-foreground">
             Technique drills, randori clips, and tatami pictures.
           </p>
         </div>
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          onClick={() => setShowAddForm(!showAddForm)}
-          className="text-xs h-7"
-        >
-          <Plus className="w-3 h-3 mr-1" />
-          {showAddForm ? "Cancel" : "Add Media"}
-        </Button>
+
+        <div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            accept="image/*,video/*"
+            className="hidden"
+            onChange={handleFileInputChange}
+          />
+          <Button
+            type="button"
+            size="sm"
+            disabled={uploading || !sessionId}
+            onClick={() => fileInputRef.current?.click()}
+            className="h-8 gap-1.5 bg-primary px-3 text-xs text-white shadow-sm hover:bg-primary/90"
+          >
+            {uploading ? (
+              <>
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                <span>
+                  {uploadProgress
+                    ? `Uploading ${uploadProgress.current}/${uploadProgress.total}`
+                    : "Uploading..."}
+                </span>
+              </>
+            ) : (
+              <>
+                <UploadCloud className="h-3.5 w-3.5" />
+                <span>Select Files</span>
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
-      {showAddForm && (
-        <form onSubmit={handleSubmit} className="p-3 bg-secondary/30 rounded-lg border border-ink/10 space-y-3">
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <Label className="text-[10px] font-mono uppercase text-muted-foreground">Media Type</Label>
-              <select
-                value={mediaType}
-                onChange={(e) => setMediaType(e.target.value as "IMAGE" | "VIDEO")}
-                className="mt-1 w-full h-8 rounded border border-input bg-background px-2 text-xs"
-              >
-                <option value="IMAGE">Photo / Picture</option>
-                <option value="VIDEO">Video Replay / Drill</option>
-              </select>
-            </div>
-            <div>
-              <Label className="text-[10px] font-mono uppercase text-muted-foreground">Cloudinary / Public ID (opt)</Label>
-              <Input
-                value={publicId}
-                onChange={(e) => setPublicId(e.target.value)}
-                placeholder="folder/clip-12"
-                className="mt-1 h-8 text-xs bg-background"
-              />
-            </div>
-          </div>
-
-          <div>
-            <Label className="text-[10px] font-mono uppercase text-muted-foreground">Media URL *</Label>
-            <Input
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="https://res.cloudinary.com/... or https://..."
-              className="mt-1 h-8 text-xs bg-background"
-              required
-            />
-          </div>
-
-          <div>
-            <Label className="text-[10px] font-mono uppercase text-muted-foreground">Caption / Technique</Label>
-            <Input
-              value={caption}
-              onChange={(e) => setCaption(e.target.value)}
-              placeholder="e.g. Roland demonstrating Uchi-mata off the left lapel"
-              className="mt-1 h-8 text-xs bg-background"
-            />
-          </div>
-
-          <div className="flex justify-end pt-1">
-            <Button type="submit" size="sm" disabled={saving} className="text-xs h-7 bg-primary">
-              {saving ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : null}
-              Save Media
-            </Button>
-          </div>
-        </form>
+      {errorMessage && (
+        <div className="rounded-md border border-destructive/20 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+          {errorMessage}
+        </div>
       )}
 
-      {media.length === 0 ? (
-        <div className="p-6 text-center rounded-lg border border-dashed border-ink/15 text-muted-foreground text-xs">
-          No photos or videos attached to this session yet.
+      {/* Drag & Drop Zone */}
+      <div
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
+        onClick={() => !uploading && sessionId && fileInputRef.current?.click()}
+        className={`group relative flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed px-4 py-5 text-center transition-all ${
+          isDragging
+            ? "border-primary bg-primary/5"
+            : "border-ink/15 bg-secondary/20 hover:border-ink/30 hover:bg-secondary/30"
+        } ${uploading ? "pointer-events-none opacity-60" : ""}`}
+      >
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-background shadow-xs transition-transform group-hover:scale-105">
+          <UploadCloud className="h-4 w-4 text-primary" />
         </div>
-      ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-          {media.map((item) => (
-            <div
-              key={item.id}
-              className="group relative rounded-lg border border-ink/10 overflow-hidden bg-background flex flex-col"
-            >
-              <div className="aspect-video bg-muted relative flex items-center justify-center overflow-hidden">
-                {item.media_type === "IMAGE" ? (
-                  <img
-                    src={item.url}
-                    alt={item.caption || "Session photo"}
-                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                  />
-                ) : (
-                  <div className="flex flex-col items-center justify-center p-3 text-center">
-                    <Video className="w-6 h-6 text-primary mb-1" />
-                    <span className="text-[10px] font-mono text-muted-foreground">Video Clip</span>
+        <p className="mt-2 text-xs font-medium text-foreground">
+          Click to browse or drop photos & videos here
+        </p>
+        <p className="mt-0.5 text-[10px] text-muted-foreground">
+          PNG, JPG, WebP, MP4, MOV up to 50MB per file (Supabase Storage)
+        </p>
+      </div>
+
+      {/* Media Grid */}
+      {media.length > 0 && (
+        <div
+          className={`grid gap-2.5 ${
+            compact ? "grid-cols-2 sm:grid-cols-3" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"
+          }`}
+        >
+          {media.map((item) => {
+            const isVideo = item.media_type === "VIDEO";
+            const isDeleting = deletingId === item.id;
+
+            return (
+              <div
+                key={item.id}
+                className="group relative flex flex-col overflow-hidden rounded-lg border border-ink/10 bg-background shadow-xs transition-shadow hover:shadow-sm"
+              >
+                <div className="relative aspect-video w-full overflow-hidden bg-black/5">
+                  {isVideo ? (
+                    <div className="relative h-full w-full bg-ink/90">
+                      <video
+                        src={item.url}
+                        controls={false}
+                        preload="metadata"
+                        className="h-full w-full object-cover opacity-80"
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-xs">
+                          <Film className="h-3.5 w-3.5" />
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <img
+                      src={item.url}
+                      alt={item.caption || "Session photo"}
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      loading="lazy"
+                    />
+                  )}
+
+                  {/* Top-right Action Buttons */}
+                  <div className="absolute right-1.5 top-1.5 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+                    <a
+                      href={item.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex h-6 w-6 items-center justify-center rounded-md bg-black/70 text-white backdrop-blur-xs hover:bg-black"
+                      title="Open full size"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                    <button
+                      type="button"
+                      disabled={isDeleting}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(item);
+                      }}
+                      className="flex h-6 w-6 items-center justify-center rounded-md bg-destructive/90 text-white backdrop-blur-xs hover:bg-destructive"
+                      title="Delete media"
+                    >
+                      {isDeleting ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-3 w-3" />
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Badge */}
+                  <div className="absolute bottom-1.5 left-1.5 rounded bg-black/60 px-1.5 py-0.5 text-[9px] font-medium uppercase tracking-wider text-white backdrop-blur-xs">
+                    {isVideo ? "Video" : "Photo"}
+                  </div>
+                </div>
+
+                {item.caption && (
+                  <div className="p-2">
+                    <p className="line-clamp-1 text-[11px] text-foreground" title={item.caption}>
+                      {item.caption}
+                    </p>
                   </div>
                 )}
-                <a
-                  href={item.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="absolute top-1.5 right-1.5 p-1 bg-black/60 rounded text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-black"
-                  title="Open source"
-                >
-                  <ExternalLink className="w-3 h-3" />
-                </a>
               </div>
-              <div className="p-2 flex-1 flex flex-col justify-between">
-                <p className="text-[11px] text-foreground line-clamp-2">
-                  {item.caption || "Training record"}
-                </p>
-                <div className="flex items-center justify-between pt-1.5 text-[9px] font-mono text-muted-foreground">
-                  <span>{item.media_type}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(item.id)}
-                    disabled={deletingId === item.id}
-                    className="text-destructive hover:underline flex items-center"
-                  >
-                    {deletingId === item.id ? (
-                      <Loader2 className="w-2.5 h-2.5 animate-spin" />
-                    ) : (
-                      <Trash2 className="w-2.5 h-2.5" />
-                    )}
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

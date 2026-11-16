@@ -13,6 +13,7 @@ import { MemberSheet } from "@/components/coach/MemberSheet";
 import { SessionSheet } from "@/components/coach/SessionSheet";
 import RequestsPanel from "@/components/coach/RequestsPanel";
 import { focusForDate, todayISO } from "@/lib/data/coach";
+import { uploadMultipleSessionMedia } from "@/lib/supabase/storage";
 import type {
   AttendanceRecord,
   Member,
@@ -64,8 +65,6 @@ const Dashboard = () => {
       await api.entities.Attendance.create({
         session_id: active.id,
         member_id: member.id,
-        session_date: sessionDate,
-        member_name: member.full_name,
       });
 
       await reload();
@@ -110,19 +109,21 @@ const Dashboard = () => {
     await reload();
   };
 
-  // Save / Update session and coordinators via Shadcn Sheet
+  // Save / Update session, coordinators, and staged media via Shadcn Sheet
   const handleSaveSession = async ({
     start_time,
     end_time,
     focus,
     notes,
     coordinatorIds,
+    stagedFiles,
   }: {
     start_time: string;
     end_time: string | null;
     focus: string;
     notes: string;
     coordinatorIds: string[];
+    stagedFiles?: File[];
   }) => {
     let activeSessionId = editingSession?.id;
 
@@ -158,38 +159,13 @@ const Dashboard = () => {
           role: "Coordinator",
         });
       }
+
+      // If files were staged when scheduling a new session, upload them directly to Supabase storage
+      if (stagedFiles && stagedFiles.length > 0) {
+        await uploadMultipleSessionMedia(activeSessionId, stagedFiles);
+      }
     }
 
-    await reload();
-  };
-
-  // Add session media
-  const handleAddMedia = async ({
-    sessionId,
-    url,
-    mediaType,
-    caption,
-    publicId,
-  }: {
-    sessionId: string;
-    url: string;
-    mediaType: "IMAGE" | "VIDEO";
-    caption?: string;
-    publicId?: string;
-  }) => {
-    await api.entities.SessionMedia.create({
-      session_id: sessionId,
-      url,
-      media_type: mediaType,
-      caption: caption || null,
-      public_id: publicId || null,
-    });
-    await reload();
-  };
-
-  // Delete session media
-  const handleDeleteMedia = async (mediaId: string) => {
-    await api.entities.SessionMedia.delete(mediaId);
     await reload();
   };
 
@@ -297,8 +273,7 @@ const Dashboard = () => {
               sessions={sessions}
               attendance={attendance}
               sessionDate={sessionDate}
-              onAddMedia={handleAddMedia}
-              onDeleteMedia={handleDeleteMedia}
+              onMediaChanged={reload}
               onEditSession={(s) => {
                 setEditingSession(s);
                 setSessionSheetOpen(true);
@@ -343,6 +318,7 @@ const Dashboard = () => {
           setEditingSession(null);
         }}
         onSave={handleSaveSession}
+        onMediaChanged={reload}
       />
 
       <PromoteDialog

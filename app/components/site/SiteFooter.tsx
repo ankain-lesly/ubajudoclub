@@ -50,9 +50,11 @@ const SiteFooter = () => (
           <ul className="mt-5 space-y-2.5 text-sm">
             {[
               { to: "/", label: "The club" },
+              { to: "/sessions", label: "Mat Sessions" },
               { to: "/schedule", label: "Training week" },
-              { to: "/events", label: "Events" },
+              { to: "/events", label: "Events & Tournaments" },
               { to: "/calendar", label: "Calendar" },
+              { to: "/members", label: "Members Directory" },
               { to: "/gallery", label: "Gallery" },
               { to: "/belts", label: "Belt pathway" },
               { to: "/join", label: "Join the mat" },

@@ -29,14 +29,7 @@ interface WrapUpPanelProps {
   sessions: TrainingSession[];
   attendance: AttendanceRecord[];
   sessionDate: string;
-  onAddMedia?: (data: {
-    sessionId: string;
-    url: string;
-    mediaType: "IMAGE" | "VIDEO";
-    caption?: string;
-    publicId?: string;
-  }) => Promise<void>;
-  onDeleteMedia?: (mediaId: string) => Promise<void>;
+  onMediaChanged?: () => Promise<void> | void;
   onEditSession?: (session: TrainingSession) => void;
 }
 
@@ -45,8 +38,7 @@ const WrapUpPanel = ({
   sessions,
   attendance,
   sessionDate,
-  onAddMedia,
-  onDeleteMedia,
+  onMediaChanged,
   onEditSession,
 }: WrapUpPanelProps) => {
   const current = sessions.find((s) => s.session_date === sessionDate) ?? null;
@@ -182,13 +174,12 @@ const WrapUpPanel = ({
       </div>
 
       {/* Session Media Section */}
-      {current && onAddMedia && onDeleteMedia && (
+      {current && (
         <div className="rounded-lg border border-ink/12 bg-card p-5">
           <SessionMediaPanel
             sessionId={current.id}
             media={current.media || []}
-            onAddMedia={onAddMedia}
-            onDeleteMedia={onDeleteMedia}
+            onMediaChanged={onMediaChanged}
           />
         </div>
       )}

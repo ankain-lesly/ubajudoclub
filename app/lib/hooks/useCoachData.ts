@@ -45,9 +45,19 @@ export const useCoachData = () => {
           api.entities.SessionMedia.filter({}, { sort: "-created_at", limit: 200 }),
         ]);
 
+      const rawMembers = (membersRes.items ?? []) as Member[];
       const rawSessions = (sessionsRes.items ?? []) as TrainingSession[];
       const rawCoordinators = (coordinatorsRes.items ?? []) as SessionCoordinator[];
       const rawMedia = (mediaRes.items ?? []) as SessionMedia[];
+
+      // Create fast lookup maps
+      const memberNameMap = new Map(rawMembers.map((m) => [m.id, m.full_name]));
+      const sessionDateMap = new Map(
+        rawSessions.map((s) => [
+          s.id,
+          s.session_date || (s.start_time ? s.start_time.split("T")[0] : ""),
+        ]),
+      );
 
       // Stitch coordinators and media into sessions for convenience
       const enrichedSessions = rawSessions.map((s) => ({
@@ -57,10 +67,20 @@ export const useCoachData = () => {
         media: rawMedia.filter((m) => m.session_id === s.id),
       }));
 
+      // Enrich attendance with member_name and session_date
+      const enrichedAttendance = (attendanceRes.items ?? []).map((a: any) => ({
+        ...a,
+        member_name: a.member_name || memberNameMap.get(a.member_id) || "Athlete",
+        session_date:
+          a.session_date ||
+          sessionDateMap.get(a.session_id) ||
+          (a.created_at ? a.created_at.split("T")[0] : ""),
+      })) as AttendanceRecord[];
+
       setData({
-        members: (membersRes.items ?? []) as Member[],
+        members: rawMembers,
         sessions: enrichedSessions,
-        attendance: (attendanceRes.items ?? []) as AttendanceRecord[],
+        attendance: enrichedAttendance,
         coordinators: rawCoordinators,
         media: rawMedia,
       });

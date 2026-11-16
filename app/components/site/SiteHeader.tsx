@@ -8,8 +8,10 @@ import { cn } from "@/lib/utils";
 const LINKS = [
   { to: "/", label: "Club" },
   { to: "/schedule", label: "Schedule" },
+  // { to: "/sessions", label: "Sessions" },
   { to: "/events", label: "Events" },
   { to: "/calendar", label: "Calendar" },
+  // { to: "/members", label: "Members" },
   { to: "/gallery", label: "Gallery" },
   { to: "/belts", label: "Belts" },
 ];
@@ -49,7 +51,7 @@ const SiteHeader = () => {
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav className="hidden items-center gap-1 lg:flex">
           {LINKS.map((link) => (
             <NavLink
               key={link.to}
@@ -57,7 +59,7 @@ const SiteHeader = () => {
               end={link.to === "/"}
               className={({ isActive }) =>
                 cn(
-                  "rounded-full px-3.5 py-2 text-[13px] font-medium transition-colors",
+                  "rounded-full px-3 py-1.5 text-[12.5px] font-medium transition-colors",
                   isActive
                     ? "bg-ink text-paper"
                     : "text-foreground/70 hover:bg-ink/5 hover:text-foreground",
@@ -72,12 +74,12 @@ const SiteHeader = () => {
           <ThemeToggle />
           <Link
             to="/login?returnTo=/dashboard"
-            className="rounded-full px-4 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground transition-colors hover:text-foreground">
+            className="rounded-full px-3.5 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground transition-colors hover:text-foreground">
             Coach login
           </Link>
           <Link
             to="/join"
-            className="group inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-[13px] font-semibold text-primary-foreground transition-all hover:bg-primary/90">
+            className="group inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-[12.5px] font-semibold text-primary-foreground transition-all hover:bg-primary/90">
             Join a session
             <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
           </Link>
@@ -86,14 +88,14 @@ const SiteHeader = () => {
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="grid h-10 w-10 place-items-center rounded-full border border-ink/12 md:hidden"
+          className="grid h-10 w-10 place-items-center rounded-full border border-ink/12 lg:hidden"
           aria-label={open ? "Close menu" : "Open menu"}>
           {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
         </button>
       </div>
 
       {open && (
-        <div className="border-t border-ink/10 bg-background px-5 pb-6 pt-2 md:hidden">
+        <div className="border-t border-ink/10 bg-background px-5 pb-6 pt-2 lg:hidden">
           {LINKS.map((link) => (
             <NavLink
               key={link.to}
@@ -101,8 +103,8 @@ const SiteHeader = () => {
               end={link.to === "/"}
               className={({ isActive }) =>
                 cn(
-                  "block border-b border-ink/8 py-3.5 font-display text-lg",
-                  isActive ? "text-primary" : "text-foreground",
+                  "block border-b border-ink/8 py-3 font-display text-base",
+                  isActive ? "text-primary font-semibold" : "text-foreground",
                 )
               }>
               {link.label}

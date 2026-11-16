@@ -18,6 +18,7 @@ export interface Member {
   belt_rank: Rank;
   current_belt?: string;
   belt_awarded_date?: string | null;
+  last_promotion_date?: string | null;
   status: MemberStatus;
   joined_on?: string | null;
   phone?: string | null;

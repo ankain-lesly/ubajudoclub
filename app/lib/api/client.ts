@@ -112,12 +112,16 @@ const createEntity = <T = any>(name: string): EntityApi<T> => {
 
     create: async (payload: Partial<T> & Record<string, unknown>) => {
       const supabase = getSupabaseBrowserClient();
-      // Remove any view-calculated fields if present in payload
+      // Remove any view-calculated or joined fields if present in payload
       const sanitized = { ...payload };
       delete (sanitized as any).sessions_total;
       delete (sanitized as any).sessions_since_promotion;
       delete (sanitized as any).last_attended;
       delete (sanitized as any).attended_count;
+      delete (sanitized as any).coordinators;
+      delete (sanitized as any).media;
+      delete (sanitized as any).member_name;
+      delete (sanitized as any).session_date;
 
       const { data, error } = await supabase
         .from(config.writeTable as any)
