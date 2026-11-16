@@ -31,6 +31,8 @@ interface WrapUpPanelProps {
   sessionDate: string;
   onMediaChanged?: () => Promise<void> | void;
   onEditSession?: (session: TrainingSession) => void;
+  activeSession?: TrainingSession | null;
+  onSelectSession?: (session: TrainingSession) => void;
 }
 
 const WrapUpPanel = ({
@@ -40,11 +42,18 @@ const WrapUpPanel = ({
   sessionDate,
   onMediaChanged,
   onEditSession,
+  activeSession,
+  onSelectSession,
 }: WrapUpPanelProps) => {
-  const current = sessions.find((s) => s.session_date === sessionDate) ?? null;
+  const current =
+    activeSession ??
+    sessions.find((s) => s.session_date === sessionDate) ??
+    sessions[0] ??
+    null;
+  const currentSessionId = current?.id;
   const past = useMemo(
-    () => sessions.filter((s) => s.session_date !== sessionDate),
-    [sessions, sessionDate],
+    () => sessions.filter((s) => s.id !== currentSessionId),
+    [sessions, currentSessionId],
   );
   const previousAverage = averageOf(
     past.slice(0, 6).map((s) => Number(s.attended_count) || 0),
@@ -79,6 +88,45 @@ const WrapUpPanel = ({
 
   return (
     <div className="space-y-6">
+      {/* Top Session Switcher Bar */}
+      {sessions.length > 0 && onSelectSession && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-ink/10 bg-card p-3">
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+              Inspecting Session:
+            </span>
+            <select
+              value={current?.id || ""}
+              onChange={(e) => {
+                const found = sessions.find((s) => s.id === e.target.value);
+                if (found) onSelectSession(found);
+              }}
+              className="rounded-md border border-ink/15 bg-background px-2.5 py-1 text-xs font-medium outline-none max-w-[280px] truncate"
+            >
+              {sessions.map((s) => {
+                const sDate =
+                  s.session_date || (s.start_time ? s.start_time.split("T")[0] : "");
+                return (
+                  <option key={s.id} value={s.id}>
+                    {sDate} · {s.focus || "Session"}
+                  </option>
+                );
+              })}
+            </select>
+          </div>
+
+          {current && onEditSession && (
+            <button
+              type="button"
+              onClick={() => onEditSession(current)}
+              className="rounded-md border border-ink/20 px-3 py-1 text-xs font-medium hover:border-primary hover:text-primary transition-colors bg-background"
+            >
+              Edit Session Details
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Session details card if session exists */}
       {current && (
         <div className="rounded-lg border border-ink/12 bg-card p-5 flex flex-wrap items-center justify-between gap-4">

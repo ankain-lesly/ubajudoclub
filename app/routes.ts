@@ -19,11 +19,11 @@ export default [
     route("belts", "routes/belts.tsx"),
     route("gallery", "routes/gallery.tsx"),
     route("join", "routes/join.tsx"),
+  ]),
 
-    // Coach area: guarded
-    layout("components/ProtectedRoute.tsx", [
-      route("dashboard", "routes/dashboard.tsx"),
-    ]),
+  // Coach area: guarded, dedicated full-page dashboard (no public site header/footer)
+  layout("components/ProtectedRoute.tsx", [
+    route("dashboard", "routes/dashboard.tsx"),
   ]),
 
   // Auth screens: standalone layout

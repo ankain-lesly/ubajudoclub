@@ -43,21 +43,21 @@ export const MOCK_SESSIONS: TrainingSession[] = [
       {
         id: "med-1",
         session_id: "sess-2026-11-14",
-        url: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1200&q=80",
+        url: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1200&h=630&q=85",
         media_type: "IMAGE",
         caption: "Senior brown belts performing Uki-goshi during Nage-no-Kata demonstration",
       },
       {
         id: "med-2",
         session_id: "sess-2026-11-14",
-        url: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=1200&q=80",
+        url: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=1200&h=630&q=85",
         media_type: "IMAGE",
         caption: "Opening Rei-ho ceremony on the Bambili main tatami",
       },
       {
         id: "med-3",
         session_id: "sess-2026-11-14",
-        url: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=1200&q=80",
+        url: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?auto=format&fit=crop&w=1200&h=630&q=85",
         media_type: "IMAGE",
         caption: "Cool-down and breathwork alignment in seiza",
       },
@@ -92,14 +92,14 @@ export const MOCK_SESSIONS: TrainingSession[] = [
       {
         id: "med-4",
         session_id: "sess-2026-11-11",
-        url: "https://images.unsplash.com/photo-1517344884509-a0c97ec11bcc?auto=format&fit=crop&w=1200&q=80",
+        url: "https://images.unsplash.com/photo-1517344884509-a0c97ec11bcc?auto=format&fit=crop&w=1200&h=630&q=85",
         media_type: "IMAGE",
         caption: "Coach Fon demonstrating foot placement for Osoto-gari",
       },
       {
         id: "med-5",
         session_id: "sess-2026-11-11",
-        url: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&q=80",
+        url: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&w=1200&h=630&q=85",
         media_type: "IMAGE",
         caption: "Uchikomi resistance bands drill along the sideline",
       },
@@ -134,7 +134,7 @@ export const MOCK_SESSIONS: TrainingSession[] = [
       {
         id: "med-6",
         session_id: "sess-2026-11-09",
-        url: "https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?auto=format&fit=crop&w=1200&q=80",
+        url: "https://images.unsplash.com/photo-1541534741688-6078c6bfb5c5?auto=format&fit=crop&w=1200&h=630&q=85",
         media_type: "IMAGE",
         caption: "White belts practicing Mae-ukemi forearm impact drills",
       },
@@ -155,7 +155,7 @@ export const MOCK_SESSIONS: TrainingSession[] = [
       {
         id: "med-7",
         session_id: "sess-2026-11-07",
-        url: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1200&q=80",
+        url: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1200&h=630&q=85",
         media_type: "IMAGE",
         caption: "Sensei Abanda breaking down the Kesa-gatame escape counter",
       },
@@ -183,7 +183,7 @@ export const MOCK_SESSIONS: TrainingSession[] = [
       {
         id: "med-8",
         session_id: "sess-2026-11-18",
-        url: "https://images.unsplash.com/photo-1517344884509-a0c97ec11bcc?auto=format&fit=crop&w=1200&q=80",
+        url: "https://images.unsplash.com/photo-1517344884509-a0c97ec11bcc?auto=format&fit=crop&w=1200&h=630&q=85",
         media_type: "IMAGE",
         caption: "Preview of the Bambili competition mat for the upcoming session",
       },
@@ -204,7 +204,7 @@ export const MOCK_SESSIONS: TrainingSession[] = [
       {
         id: "med-9",
         session_id: "sess-2026-11-20",
-        url: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=1200&q=80",
+        url: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=1200&h=630&q=85",
         media_type: "IMAGE",
         caption: "The Bambili sports hall mats prepped for Friday competition randori",
       },

@@ -14,7 +14,7 @@ import {
   ChevronRight,
   X,
 } from "lucide-react";
-import { getMockSessionById, getMockSessions } from "@/lib/data/sessions";
+import { getPublicSessionById } from "@/lib/api/public";
 import { Image } from "@/components/ui/image";
 import Aura from "@/components/visual/Aura";
 import Reveal from "@/components/visual/Reveal";
@@ -23,13 +23,11 @@ import { VENUE } from "@/lib/data/club";
 import { cn } from "@/lib/utils";
 import type { Route } from "./+types/session.$id";
 
-export async function loader({ params }: Route.LoaderArgs) {
-  const session = getMockSessionById(params.id);
+export async function loader({ params, request }: Route.LoaderArgs) {
+  const { session, others } = await getPublicSessionById(params.id, request);
   if (!session) {
     throw data(null, { status: 404 });
   }
-  const all = getMockSessions();
-  const others = all.filter((s) => s.id !== session.id).slice(0, 2);
   return { session, others };
 }
 
@@ -38,22 +36,36 @@ export function meta({ loaderData }: Route.MetaArgs) {
     return [{ title: "Session not found — UBa Judo Club" }];
   }
   const { session } = loaderData;
-  const firstMediaImage = session.media?.[0]?.url;
+  // Get first media of type IMAGE, otherwise fallback to the first media item
+  const selectedMedia =
+    session.media?.find((m) => m.media_type === "IMAGE") ??
+    session.media?.[0];
+  const firstMediaImage = selectedMedia?.thumbnail_url || selectedMedia?.url;
   const title = `${session.focus || "Training Session"} — UBa Judo Club`;
+  
+  // Compact social description under 125 characters with high-converting CTA
+  const baseDesc = session.notes ? session.notes.replace(/\s+/g, ' ').trim() : "";
   const description =
-    session.notes ||
-    `UBa Judo Club training session on ${session.session_date} conducted by ${session.coach}.`;
+    baseDesc.length > 0 && baseDesc.length <= 118
+      ? baseDesc
+      : baseDesc.length > 118
+        ? `${baseDesc.slice(0, 115).trim()}…`
+        : `Bambili mat session with ${session.coach || "coaches"}. Explore syllabus & photos.`;
 
   return [
     { title },
     { name: "description", content: description },
+    { property: "og:site_name", content: "UBa Judo Club" },
     { property: "og:title", content: title },
     { property: "og:description", content: description },
     { property: "og:type", content: "article" },
     ...(firstMediaImage
       ? [
           { property: "og:image", content: firstMediaImage },
-          { property: "og:image:alt", content: session.focus || "UBa Judo Session" },
+          { property: "og:image:width", content: "1200" },
+          { property: "og:image:height", content: "630" },
+          { property: "og:image:type", content: "image/jpeg" },
+          { property: "og:image:alt", content: `${session.focus || "Session"} — UBa Judo Club Bambili Mat` },
           { name: "twitter:image", content: firstMediaImage },
         ]
       : []),

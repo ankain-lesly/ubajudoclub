@@ -51,6 +51,7 @@ export function meta(): Route.MetaDescriptors {
         "Judo at Bambili Campus: weekly sessions, the Kyu–Dan pathway, and anonymised club turnout.",
     },
     { property: "og:type", content: "website" },
+    { property: "og:site_name", content: "UBa Judo Club" },
     { name: "twitter:card", content: "summary_large_image" },
   ];
 }

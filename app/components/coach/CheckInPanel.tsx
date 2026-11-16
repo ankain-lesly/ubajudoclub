@@ -14,6 +14,8 @@ interface CheckInPanelProps {
   onUndo: (record: AttendanceRecord) => void;
   activeSession?: TrainingSession | null;
   onOpenSessionSheet?: () => void;
+  sessions?: TrainingSession[];
+  onSelectSession?: (session: TrainingSession) => void;
 }
 
 const CheckInPanel = ({
@@ -26,6 +28,8 @@ const CheckInPanel = ({
   onUndo,
   activeSession,
   onOpenSessionSheet,
+  sessions,
+  onSelectSession,
 }: CheckInPanelProps) => {
   const [query, setQuery] = useState("");
   const checkedIds = useMemo(
@@ -63,8 +67,32 @@ const CheckInPanel = ({
                 Search a name, tap once. Instant ledger updates with zero counter drift.
               </p>
             </div>
-            <div className="flex items-center gap-2">
-              <label className="flex items-center gap-2 rounded-md border border-ink/15 px-3 py-2">
+            <div className="flex flex-wrap items-center gap-2">
+              {sessions && sessions.length > 0 && onSelectSession && (
+                <select
+                  value={activeSession?.id || ""}
+                  onChange={(e) => {
+                    const found = sessions.find((s) => s.id === e.target.value);
+                    if (found) onSelectSession(found);
+                  }}
+                  className="rounded-md border border-ink/15 bg-background px-2.5 py-1.5 text-xs font-medium outline-none max-w-[210px] truncate"
+                >
+                  <option value="" disabled>
+                    Switch Session...
+                  </option>
+                  {sessions.map((s) => {
+                    const sDate =
+                      s.session_date || (s.start_time ? s.start_time.split("T")[0] : "");
+                    return (
+                      <option key={s.id} value={s.id}>
+                        {sDate} · {s.focus || "Session"}
+                      </option>
+                    );
+                  })}
+                </select>
+              )}
+
+              <label className="flex items-center gap-2 rounded-md border border-ink/15 px-3 py-1.5 bg-background">
                 <CalendarDays className="h-3.5 w-3.5 text-muted-foreground" />
                 <input
                   type="date"
@@ -78,7 +106,7 @@ const CheckInPanel = ({
                 <button
                   type="button"
                   onClick={onOpenSessionSheet}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-ink/15 px-3 py-2 text-[11px] font-mono hover:border-primary hover:text-primary transition-colors"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-ink/15 px-3 py-1.5 text-[11px] font-mono hover:border-primary hover:text-primary transition-colors bg-background"
                   title="Edit session focus, times, coordinators"
                 >
                   <Settings2 className="w-3.5 h-3.5" />

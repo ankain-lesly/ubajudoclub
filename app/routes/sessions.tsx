@@ -9,7 +9,7 @@ import {
   Sparkles,
   ChevronRight,
 } from "lucide-react";
-import { getMockSessions } from "@/lib/data/sessions";
+import { getPublicSessions } from "@/lib/api/public";
 import { Image } from "@/components/ui/image";
 import Aura from "@/components/visual/Aura";
 import RingField from "@/components/visual/RingField";
@@ -18,31 +18,41 @@ import SectionBackdrop from "@/components/visual/SectionBackdrop";
 import { cn } from "@/lib/utils";
 import type { Route } from "./+types/sessions";
 
-export function meta(): Route.MetaDescriptors {
-  const sessions = getMockSessions();
+export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
+  const sessions = loaderData?.sessions || [];
   const firstSession = sessions[0];
-  const firstImage = firstSession?.media?.[0]?.url;
+  const selectedMedia =
+    firstSession?.media?.find((m) => m.media_type === "IMAGE") ??
+    firstSession?.media?.[0];
+  const firstImage = selectedMedia?.thumbnail_url || selectedMedia?.url;
+  const description =
+    "Explore training logs, syllabus focuses, and photo captures from UBa Judo Club Bambili sessions.";
 
   return [
     { title: "Mat Sessions — UBa Judo Club" },
-    {
-      name: "description",
-      content:
-        "Every training night and Saturday morning on the Bambili Campus tatami. Syllabus, focus notes, attendee counts, and mat photography.",
-    },
+    { name: "description", content: description },
+    { property: "og:site_name", content: "UBa Judo Club" },
     { property: "og:title", content: "Mat Sessions — UBa Judo Club" },
-    {
-      property: "og:description",
-      content:
-        "Explore training logs, technical syllabus focuses, and photography from UBa Judo Club sessions.",
-    },
-    ...(firstImage ? [{ property: "og:image", content: firstImage }] : []),
+    { property: "og:description", content: description },
+    { property: "og:type", content: "website" },
+    ...(firstImage
+      ? [
+          { property: "og:image", content: firstImage },
+          { property: "og:image:width", content: "1200" },
+          { property: "og:image:height", content: "630" },
+          { property: "og:image:type", content: "image/jpeg" },
+          { property: "og:image:alt", content: "UBa Judo Club Mat Sessions" },
+          { name: "twitter:image", content: firstImage },
+        ]
+      : []),
     { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: "Mat Sessions — UBa Judo Club" },
+    { name: "twitter:description", content: description },
   ];
 }
 
-export async function loader() {
-  const sessions = getMockSessions();
+export async function loader({ request }: Route.LoaderArgs) {
+  const sessions = await getPublicSessions(request);
   return { sessions };
 }
 

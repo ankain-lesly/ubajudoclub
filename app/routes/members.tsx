@@ -9,7 +9,7 @@ import {
   Shield,
   Filter,
 } from "lucide-react";
-import { getMockMembers } from "@/lib/data/members";
+import { getPublicMembers } from "@/lib/api/public";
 import { BELTS, beltFor } from "@/lib/data/club";
 import type { Rank } from "@/lib/types";
 import Aura from "@/components/visual/Aura";
@@ -21,25 +21,24 @@ import { cn } from "@/lib/utils";
 import type { Route } from "./+types/members";
 
 export function meta(): Route.MetaDescriptors {
+  const description =
+    "Search registered university judoka, active kyu grades, and black belts at UBa Judo Club.";
+
   return [
     { title: "Club Members Directory — UBa Judo Club" },
-    {
-      name: "description",
-      content:
-        "Official registry of University of Bamenda judo athletes, active kyu grades, and dan ranks across academic faculties.",
-    },
+    { name: "description", content: description },
+    { property: "og:site_name", content: "UBa Judo Club" },
     { property: "og:title", content: "Club Members Directory — UBa Judo Club" },
-    {
-      property: "og:description",
-      content:
-        "Search active and alumni judoka at UBa Judo Club by name, university program, matricule, and belt rank.",
-    },
+    { property: "og:description", content: description },
+    { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: "Club Members Directory — UBa Judo Club" },
+    { name: "twitter:description", content: description },
   ];
 }
 
-export async function loader() {
-  const members = getMockMembers();
+export async function loader({ request }: Route.LoaderArgs) {
+  const members = await getPublicMembers(request);
   return { members };
 }
 
