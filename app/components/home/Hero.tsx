@@ -36,8 +36,8 @@ const Hero = () => (
         </h1>
 
         <p className="mt-8 max-w-md text-[15px] leading-relaxed text-muted-foreground">
-          The University of Bamenda's judo club trains three evenings a week in
-          the Bambili Multi-Purpose Sports Hall — ukemi, newaza, and the long
+          The University of Bamenda's judo club trains weekly in
+          UBa Campus Amphi 100 — ukemi, newaza, and the long
           discipline of grading from white belt to dan.
         </p>
 
@@ -71,7 +71,7 @@ const Hero = () => (
             </dt>
             <dd className="mt-1.5 flex items-center gap-1.5 text-[13px] font-medium">
               <Clock className="h-3.5 w-3.5 text-primary" />
-              Mondays · 17:30
+              Mondays · 8:00 AM
             </dd>
           </div>
         </dl>

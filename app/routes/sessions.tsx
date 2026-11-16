@@ -26,7 +26,7 @@ export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
     firstSession?.media?.[0];
   const firstImage = selectedMedia?.thumbnail_url || selectedMedia?.url;
   const description =
-    "Explore training logs, syllabus focuses, and photo captures from UBa Judo Club Bambili sessions.";
+    "Explore training logs, syllabus focuses, and photo captures from UBa Judo Club at UBa Campus Amphi 100.";
 
   return [
     { title: "Mat Sessions — UBa Judo Club" },
@@ -107,7 +107,7 @@ const Sessions = ({ loaderData }: Route.ComponentProps) => {
         <div className="relative mx-auto max-w-6xl px-5 py-16 lg:px-8 lg:py-24">
           <p className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.32em] text-primary">
             <span className="h-px w-8 bg-primary" />
-            Bambili Tatami Logs
+            UBa Judo Sessions
           </p>
           <h1 className="mt-7 max-w-2xl font-display text-[clamp(2.4rem,5.4vw,4rem)] font-semibold leading-[0.94] tracking-[-0.035em] text-balance">
             Every session on the record.

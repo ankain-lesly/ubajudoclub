@@ -17,7 +17,7 @@ import { createQueryClient } from "@/lib/query-client";
 
 const TITLE = "UBa Judo Club — University of Bamenda";
 const DESCRIPTION =
-  "The University of Bamenda judo club at Bambili Campus. Training three evenings and one Saturday a week, a clear Kyu–Dan belt pathway, and open turnout metrics that never expose member identities.";
+  "The University of Bamenda judo club at UBa Campus Amphi 100. Monday morning training starting at 8:00 AM, weekly evening and weekend sessions, a clear Kyu–Dan belt pathway, and open turnout metrics.";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -48,7 +48,7 @@ export function meta(): Route.MetaDescriptors {
     {
       property: "og:description",
       content:
-        "Judo at Bambili Campus: weekly sessions, the Kyu–Dan pathway, and anonymised club turnout.",
+        "Judo at UBa Campus Amphi 100: weekly sessions with Monday morning start at 8:00 AM, the Kyu–Dan pathway, and anonymised club turnout.",
     },
     { property: "og:type", content: "website" },
     { property: "og:site_name", content: "UBa Judo Club" },

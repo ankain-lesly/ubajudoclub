@@ -15,8 +15,8 @@ const SiteFooter = () => (
             </span>
           </div>
           <p className="mt-5 max-w-xs text-sm leading-relaxed text-muted-foreground">
-            The University of Bamenda judo club. Training three evenings and one
-            Saturday morning a week at the Bambili campus.
+            The University of Bamenda judo club. Training sessions weekly at
+            UBa Campus Amphi 100.
           </p>
           <p className="mt-6 font-mono text-[10px] uppercase leading-relaxed tracking-[0.2em] text-muted-foreground">
             {VENUE.name}

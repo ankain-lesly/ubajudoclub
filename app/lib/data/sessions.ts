@@ -2,6 +2,48 @@ import type { TrainingSession } from "@/lib/types";
 
 export const MOCK_SESSIONS: TrainingSession[] = [
   {
+    id: "sess-2026-11-16",
+    session_date: "2026-11-16",
+    start_time: "08:00",
+    end_time: "09:30",
+    focus: "Harai-goshi Mechanics & Grip Breaking",
+    coach: "Coach Ngwa (3rd Dan)",
+    attended_count: 26,
+    notes:
+      "Monday morning session focusing on Harai-goshi sweeping hip throws, breaking stiff-arm defensive grips, and situational randori from opposite stances.",
+    coordinators: [
+      {
+        id: "coord-today-1",
+        session_id: "sess-2026-11-16",
+        member_id: "mem-3",
+        role: "Tatami Marshal",
+        member: {
+          id: "mem-3",
+          full_name: "Brenda Tche",
+          belt_rank: "Brown",
+          status: "active",
+          program: "Law, Year 4",
+        },
+      },
+    ],
+    media: [
+      {
+        id: "med-today-1",
+        session_id: "sess-2026-11-16",
+        url: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1200&h=630&q=85",
+        media_type: "IMAGE",
+        caption: "Harai-goshi sweeping leg entry demonstration during today's morning mat",
+      },
+      {
+        id: "med-today-2",
+        session_id: "sess-2026-11-16",
+        url: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=1200&h=630&q=85",
+        media_type: "IMAGE",
+        caption: "Active grip breaking drill along the tatami perimeter",
+      },
+    ],
+  },
+  {
     id: "sess-2026-11-14",
     session_date: "2026-11-14",
     start_time: "08:00",
@@ -52,7 +94,7 @@ export const MOCK_SESSIONS: TrainingSession[] = [
         session_id: "sess-2026-11-14",
         url: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=1200&h=630&q=85",
         media_type: "IMAGE",
-        caption: "Opening Rei-ho ceremony on the Bambili main tatami",
+        caption: "Opening Rei-ho ceremony on the UBa Campus Amphi 100 tatami",
       },
       {
         id: "med-3",
@@ -108,13 +150,13 @@ export const MOCK_SESSIONS: TrainingSession[] = [
   {
     id: "sess-2026-11-09",
     session_date: "2026-11-09",
-    start_time: "17:30",
-    end_time: "19:00",
+    start_time: "08:00",
+    end_time: "09:30",
     focus: "Ukemi Fundamentals & Balance Breaking",
     coach: "Coach Ngwa (3rd Dan)",
     attended_count: 42,
     notes:
-      "Monday beginners intake. Mae-mawari-ukemi (forward rolling breakfalls) progression from kneeling to standing over mats. Excellent composure from all 14 new white belts.",
+      "Monday morning beginners intake. Mae-mawari-ukemi (forward rolling breakfalls) progression from kneeling to standing over mats. Excellent composure from all 14 new white belts.",
     coordinators: [
       {
         id: "coord-4",
@@ -185,7 +227,7 @@ export const MOCK_SESSIONS: TrainingSession[] = [
         session_id: "sess-2026-11-18",
         url: "https://images.unsplash.com/photo-1517344884509-a0c97ec11bcc?auto=format&fit=crop&w=1200&h=630&q=85",
         media_type: "IMAGE",
-        caption: "Preview of the Bambili competition mat for the upcoming session",
+        caption: "Preview of the Amphi 100 competition mat for the upcoming session",
       },
     ],
   },
@@ -206,7 +248,7 @@ export const MOCK_SESSIONS: TrainingSession[] = [
         session_id: "sess-2026-11-20",
         url: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=1200&h=630&q=85",
         media_type: "IMAGE",
-        caption: "The Bambili sports hall mats prepped for Friday competition randori",
+        caption: "The Amphi 100 mats prepped for Friday competition randori",
       },
     ],
   },

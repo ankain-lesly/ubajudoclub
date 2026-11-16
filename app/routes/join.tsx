@@ -180,8 +180,8 @@ export default function Join() {
               <div className="mt-8 rounded-lg border border-ink/8 bg-secondary/30 p-4 text-xs text-muted-foreground space-y-1">
                 <p className="font-medium text-foreground">Next Step:</p>
                 <p>
-                  Check your inbox for a confirmation. You can also drop by the Bambili Sports Hall
-                  on Tuesday or Thursday at 17:00 to watch a session and meet the team.
+                  Check your inbox for a confirmation. You can also drop by UBa Campus Amphi 100
+                  during regular training sessions to watch and meet the team.
                 </p>
               </div>
 

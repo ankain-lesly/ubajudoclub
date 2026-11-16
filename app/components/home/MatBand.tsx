@@ -10,7 +10,7 @@ const MatBand = () => (
       <figure className="relative overflow-hidden rounded-xl border border-ink/10">
         <Image
           src={HERO_IMAGE}
-          alt="Two UBa judo athletes mid-throw on the tatami in the Bambili sports hall"
+          alt="Two UBa judo athletes mid-throw on the tatami in UBa Campus Amphi 100"
           className="h-[280px] w-full transition-transform duration-1000 ease-out hover:scale-[1.03] sm:h-[400px] lg:h-[500px]"
           fittingType="fill"
         />
@@ -20,7 +20,7 @@ const MatBand = () => (
             follows from that.”
           </p>
           <p className="mt-3 font-mono text-[9px] uppercase tracking-[0.24em] text-band-foreground/60">
-            Bambili Multi-Purpose Sports Hall · Friday ne-waza
+            UBa Campus Amphi 100 · Friday ne-waza
           </p>
         </figcaption>
       </figure>

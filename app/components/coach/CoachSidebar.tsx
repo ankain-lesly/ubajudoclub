@@ -183,7 +183,7 @@ export function CoachSidebar({
             <p className="font-mono text-[10px] text-white/60">
               {activeSession
                 ? shortDate(activeSession.session_date || (activeSession.start_time ? activeSession.start_time.split("T")[0] : ""))
-                : "Bambili Hall"}
+                : "UBa Campus Amphi 100"}
             </p>
           </div>
 

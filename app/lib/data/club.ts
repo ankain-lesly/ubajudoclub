@@ -64,10 +64,10 @@ export const beltFor = (rank?: string): BeltInfo =>
   BELTS.find((b) => b.rank === rank) ?? BELTS[0];
 
 export const VENUE = {
-  name: "Multi-Purpose Sports Hall",
+  name: "UBa Campus Amphi 100",
   campus: "University of Bamenda — Bambili Campus",
   region: "Bambili, North West Region, Cameroon",
-  note: "Enter through the north court doors. Mats are laid 20 minutes before the first session.",
+  note: "Enter through the main Amphi 100 doors. Mats are laid 20 minutes before training.",
 };
 
 export interface SessionTemplate {
@@ -80,25 +80,26 @@ export interface SessionTemplate {
 export const WEEK: SessionTemplate[] = [
   {
     day: "Monday",
-    time: "17:30 – 19:00",
+    time: "08:00 – 12:00",
     focus: "Ukemi and fundamentals",
     group: "All ranks",
   },
   {
     day: "Wednesday",
-    time: "17:30 – 19:00",
+    time: "15:30 – 18:00",
     focus: "Tachi-waza and randori",
     group: "Yellow belt and above",
   },
   {
     day: "Friday",
-    time: "17:30 – 19:00",
+    time: "15:30 – 18:00",
     focus: "Ne-waza and grading prep",
     group: "All ranks",
   },
   {
     day: "Saturday",
-    time: "08:00 – 09:30",
+    // time: "08:00 – 09:30",
+    time: "15:30 – 18:00",
     focus: "Kata and open mat",
     group: "Open session",
   },

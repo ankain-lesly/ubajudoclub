@@ -31,17 +31,31 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   return { session, others };
 }
 
+function isToday(isoDateString?: string): boolean {
+  if (!isoDateString) return false;
+  const dateStr = isoDateString.split("T")[0];
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+  const localDate = `${year}-${month}-${day}`;
+  const utcDate = now.toISOString().slice(0, 10);
+  return dateStr === localDate || dateStr === utcDate;
+}
+
 export function meta({ loaderData }: Route.MetaArgs) {
   if (!loaderData) {
     return [{ title: "Session not found — UBa Judo Club" }];
   }
   const { session } = loaderData;
+  const isTodaySession = isToday(session.session_date);
+
   // Get first media of type IMAGE, otherwise fallback to the first media item
   const selectedMedia =
     session.media?.find((m) => m.media_type === "IMAGE") ??
     session.media?.[0];
   const firstMediaImage = selectedMedia?.thumbnail_url || selectedMedia?.url;
-  const title = `${session.focus || "Training Session"} — UBa Judo Club`;
+  const title = `${isTodaySession ? "Today's Session " : ""}${session.focus || "Training Session"} — UBa Judo Club`;
   
   // Compact social description under 125 characters with high-converting CTA
   const baseDesc = session.notes ? session.notes.replace(/\s+/g, ' ').trim() : "";
@@ -50,7 +64,7 @@ export function meta({ loaderData }: Route.MetaArgs) {
       ? baseDesc
       : baseDesc.length > 118
         ? `${baseDesc.slice(0, 115).trim()}…`
-        : `Bambili mat session with ${session.coach || "coaches"}. Explore syllabus & photos.`;
+        : `Training session with ${session.coach || "coaches"}. Explore judo & fitness.`;
 
   return [
     { title },
@@ -65,7 +79,7 @@ export function meta({ loaderData }: Route.MetaArgs) {
           { property: "og:image:width", content: "1200" },
           { property: "og:image:height", content: "630" },
           { property: "og:image:type", content: "image/jpeg" },
-          { property: "og:image:alt", content: `${session.focus || "Session"} — UBa Judo Club Bambili Mat` },
+          { property: "og:image:alt", content: `${isTodaySession ? "Today's Session " : ""}${session.focus || "Session"} — UBa Campus Amphi 100` },
           { name: "twitter:image", content: firstMediaImage },
         ]
       : []),
@@ -189,6 +203,12 @@ const SessionDetail = ({ loaderData }: Route.ComponentProps) => {
           <div className="mt-8 grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:gap-14">
             <div>
               <div className="flex flex-wrap items-center gap-3">
+                {isToday(session.session_date) && (
+                  <span className="flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/15 px-3 py-1 font-mono text-[9px] uppercase tracking-[0.16em] text-primary font-semibold">
+                    <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
+                    Today's Session
+                  </span>
+                )}
                 <span className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1 font-mono text-[9px] uppercase tracking-[0.16em] text-primary">
                   {formatDate(session.session_date)}
                 </span>
@@ -201,6 +221,7 @@ const SessionDetail = ({ loaderData }: Route.ComponentProps) => {
               </div>
 
               <h1 className="mt-5 font-display text-[clamp(2.2rem,4.5vw,3.5rem)] font-semibold leading-[0.96] tracking-[-0.03em] text-balance">
+                {isToday(session.session_date) ? "Today's Session " : ""}
                 {session.focus}
               </h1>
 

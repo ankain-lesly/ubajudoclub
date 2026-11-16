@@ -52,8 +52,8 @@ export const GALLERY: GalleryItem[] = [
   },
   {
     src: 'https://media.api.com/images/public/6af95e639c10712cfccdaffc/ddaa1c1ad_generated_image.png',
-    alt: 'The sports hall with tatami laid out before training',
-    caption: 'The hall, twenty minutes before 17:30',
+    alt: 'UBa Campus Amphi 100 with tatami laid out before training',
+    caption: 'Amphi 100, twenty minutes before training',
     category: 'Training',
     year: '2025',
   },
