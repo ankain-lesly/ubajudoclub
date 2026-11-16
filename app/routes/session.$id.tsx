@@ -16,6 +16,14 @@ import {
 } from "lucide-react";
 import { getPublicSessionById } from "@/lib/api/public";
 import { Image } from "@/components/ui/image";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerClose,
+} from "@/components/ui/drawer";
 import Aura from "@/components/visual/Aura";
 import Reveal from "@/components/visual/Reveal";
 import SectionBackdrop from "@/components/visual/SectionBackdrop";
@@ -130,13 +138,35 @@ const SessionDetail = ({ loaderData }: Route.ComponentProps) => {
   const [copied, setCopied] = useState(false);
 
   const firstMedia = session.media?.[0];
+  const activeMedia =
+    activeMediaIndex !== null && session.media
+      ? session.media[activeMediaIndex]
+      : null;
 
+  const closeDrawer = () => {
+    if (
+      typeof window !== "undefined" &&
+      window.history.state?.drawer === "photo-viewer"
+    ) {
+      window.history.back();
+    } else {
+      setActiveMediaIndex(null);
+    }
+  };
+
+  // Keyboard navigation & native back action support
   useEffect(() => {
     if (activeMediaIndex === null) return;
+
+    // Push history entry so native device/browser back button dismisses the drawer
+    window.history.pushState({ drawer: "photo-viewer" }, "");
+
+    const handlePopState = () => {
+      setActiveMediaIndex(null);
+    };
+
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setActiveMediaIndex(null);
-      } else if (e.key === "ArrowLeft") {
+      if (e.key === "ArrowLeft") {
         setActiveMediaIndex((i) => (i !== null && i > 0 ? i - 1 : i));
       } else if (e.key === "ArrowRight") {
         setActiveMediaIndex((i) =>
@@ -144,14 +174,15 @@ const SessionDetail = ({ loaderData }: Route.ComponentProps) => {
         );
       }
     };
+
+    window.addEventListener("popstate", handlePopState);
     window.addEventListener("keydown", onKeyDown);
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+
     return () => {
+      window.removeEventListener("popstate", handlePopState);
       window.removeEventListener("keydown", onKeyDown);
-      document.body.style.overflow = originalOverflow;
     };
-  }, [activeMediaIndex, session.media]);
+  }, [activeMediaIndex !== null, session.media]);
 
   const handleShare = async () => {
     try {
@@ -360,42 +391,21 @@ const SessionDetail = ({ loaderData }: Route.ComponentProps) => {
               </p>
             </div>
 
-            <div className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:gap-6">
               {session.media.map((item, idx) => (
                 <button
                   key={item.id}
                   type="button"
                   onClick={() => setActiveMediaIndex(idx)}
-                  className="group relative flex flex-col overflow-hidden rounded-2xl border border-ink/12 bg-card text-left transition-all duration-300 hover:-translate-y-1 hover:border-ink/30 hover:shadow-2xl"
+                  className="group relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-ink/10 bg-band transition-all duration-300 hover:scale-[1.02] hover:border-ink/25 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  aria-label={item.caption || `View photo ${idx + 1}`}
                 >
-                  <div className="relative aspect-[16/10] w-full overflow-hidden bg-band">
-                    <Image
-                      src={item.thumbnail_url || item.url}
-                      alt={item.caption || `Capture frame ${idx + 1}`}
-                      className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-band/80 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-                    <span className="absolute right-3.5 top-3.5 grid h-9 w-9 place-items-center rounded-full bg-band/75 text-band-foreground backdrop-blur-md transition-transform duration-300 group-hover:scale-110">
-                      <Camera className="h-4 w-4" />
-                    </span>
-                    <span className="absolute bottom-3 left-3 rounded-full border border-band-foreground/20 bg-band/70 px-2.5 py-0.5 font-mono text-[8.5px] uppercase tracking-[0.16em] text-band-foreground backdrop-blur-sm">
-                      Frame {String(idx + 1).padStart(2, "0")}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-1 flex-col justify-between p-5">
-                    <p className="text-[13.5px] font-medium leading-snug text-foreground/90 transition-colors group-hover:text-primary">
-                      {item.caption || "Mat work & tactical sequence demonstration"}
-                    </p>
-                    <div className="mt-4 flex items-center justify-between border-t border-ink/8 pt-3 text-[11px] text-muted-foreground">
-                      <span className="font-mono uppercase tracking-[0.14em]">
-                        {item.media_type}
-                      </span>
-                      <span className="font-medium text-primary group-hover:underline">
-                        Expand photo →
-                      </span>
-                    </div>
-                  </div>
+                  <Image
+                    src={item.thumbnail_url || item.url}
+                    alt={item.caption || `Capture frame ${idx + 1}`}
+                    className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                  />
+                  <div className="pointer-events-none absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/15" />
                 </button>
               ))}
             </div>
@@ -448,110 +458,112 @@ const SessionDetail = ({ loaderData }: Route.ComponentProps) => {
         )}
       </section>
 
-      {/* High-Visibility Fullscreen Preview Modal */}
-      {activeMediaIndex !== null && session.media && session.media[activeMediaIndex] && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 flex flex-col justify-between bg-black/92 p-4 backdrop-blur-xl sm:p-6"
-          onClick={() => setActiveMediaIndex(null)}
-        >
+      {/* Native Back-Supported Photography Drawer */}
+      <Drawer
+        open={activeMediaIndex !== null}
+        onOpenChange={(open) => {
+          if (!open) closeDrawer();
+        }}
+        showSwipeHandle
+      >
+        <DrawerContent className="max-h-[95dvh] h-[92dvh] w-full max-w-6xl mx-auto bg-card/98 border-t border-ink/15 shadow-2xl backdrop-blur-2xl flex flex-col overflow-hidden outline-none rounded-t-3xl">
           {/* Header Bar */}
-          <div
-            className="relative z-10 mx-auto flex w-full max-w-6xl items-center justify-between"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center gap-3">
-              <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 font-mono text-[9px] uppercase tracking-[0.2em] text-white">
-                Frame {activeMediaIndex + 1} / {session.media.length}
-              </span>
-              <span className="hidden font-mono text-[10px] text-white/50 sm:inline">
-                Use ← → arrow keys to navigate, Esc to close
-              </span>
+          <DrawerHeader className="flex flex-row items-center justify-between border-b border-ink/10 px-5 py-3 sm:px-7">
+            <div>
+              <DrawerTitle className="font-display text-base font-semibold">
+                {activeMedia?.caption || "Session Photography"}
+              </DrawerTitle>
+              <DrawerDescription className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">
+                {session.focus || "Mat Session"} · Frame {(activeMediaIndex ?? 0) + 1} of {session.media?.length || 0}
+              </DrawerDescription>
             </div>
 
-            <button
-              type="button"
-              onClick={() => setActiveMediaIndex(null)}
-              className="grid h-11 w-11 place-items-center rounded-full border border-white/20 bg-white/10 text-white transition-all hover:scale-105 hover:bg-white/20"
-              aria-label="Close modal"
+            <DrawerClose
+              onClick={closeDrawer}
+              className="grid h-8 w-8 place-items-center rounded-full border border-ink/15 text-muted-foreground transition-all hover:bg-secondary hover:text-foreground"
+              aria-label="Close viewer"
             >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
+              <X className="h-4 w-4" />
+            </DrawerClose>
+          </DrawerHeader>
 
-          {/* Centered Image with Lateral Controls */}
-          <div
-            className="relative mx-auto flex w-full max-w-6xl flex-1 items-center justify-center gap-2 py-4 sm:gap-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              type="button"
-              disabled={activeMediaIndex === 0}
-              onClick={() => setActiveMediaIndex((i) => (i !== null && i > 0 ? i - 1 : i))}
-              className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-white/20 bg-white/10 text-white shadow-xl transition-all hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-20"
-              aria-label="Previous photo"
-            >
-              <ChevronLeft className="h-6 w-6" />
-            </button>
-
-            <figure className="flex max-h-[80vh] w-full flex-col items-center justify-center">
-              <Image
-                src={session.media[activeMediaIndex].url}
-                alt={session.media[activeMediaIndex].caption || "Session Photo"}
-                className="max-h-[70vh] w-auto max-w-full rounded-xl object-contain shadow-2xl ring-1 ring-white/10"
-              />
-              {session.media[activeMediaIndex].caption && (
-                <figcaption className="mt-4 max-w-2xl text-center text-sm font-medium leading-relaxed text-white/90">
-                  {session.media[activeMediaIndex].caption}
-                </figcaption>
-              )}
-            </figure>
-
-            <button
-              type="button"
-              disabled={activeMediaIndex === session.media.length - 1}
-              onClick={() =>
-                setActiveMediaIndex((i) =>
-                  i !== null && session.media && i < session.media.length - 1
-                    ? i + 1
-                    : i,
-                )
-              }
-              className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-white/20 bg-white/10 text-white shadow-xl transition-all hover:bg-white/20 disabled:cursor-not-allowed disabled:opacity-20"
-              aria-label="Next photo"
-            >
-              <ChevronRight className="h-6 w-6" />
-            </button>
-          </div>
-
-          {/* Footer Thumbnails Strip */}
-          <div
-            className="relative z-10 mx-auto flex w-full max-w-4xl justify-center gap-2 overflow-x-auto py-2"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {session.media.map((thumb, idx) => (
+          {/* Full Content Width Media View with Floating Left & Right Arrows */}
+          <div className="relative flex-1 w-full min-h-0 flex items-center justify-center bg-black/40 overflow-hidden">
+            {/* Floating Left Arrow */}
+            {session.media && session.media.length > 1 && (
               <button
-                key={thumb.id}
                 type="button"
-                onClick={() => setActiveMediaIndex(idx)}
-                className={cn(
-                  "relative h-14 w-20 shrink-0 overflow-hidden rounded-lg border transition-all",
-                  activeMediaIndex === idx
-                    ? "border-primary ring-2 ring-primary"
-                    : "border-white/20 opacity-50 hover:opacity-100",
-                )}
+                disabled={activeMediaIndex === 0}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveMediaIndex((i) => (i !== null && i > 0 ? i - 1 : i));
+                }}
+                className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-30 grid h-11 w-11 sm:h-13 sm:w-13 place-items-center rounded-full border border-white/20 bg-black/60 text-white shadow-2xl backdrop-blur-md transition-all hover:scale-105 hover:bg-black/85 disabled:opacity-0 disabled:pointer-events-none"
+                aria-label="Previous photo"
               >
-                <Image
-                  src={thumb.thumbnail_url || thumb.url}
-                  alt={thumb.caption || `Thumbnail ${idx + 1}`}
-                  className="h-full w-full object-cover"
-                />
+                <ChevronLeft className="h-6 w-6" />
               </button>
-            ))}
+            )}
+
+            {/* Full Content Width Media Display */}
+            {activeMedia && (
+              <div className="relative w-full h-full flex items-center justify-center p-2 sm:p-4">
+                <Image
+                  src={activeMedia.url}
+                  alt={activeMedia.caption || `Session capture ${(activeMediaIndex ?? 0) + 1}`}
+                  className="w-full h-full max-h-[66vh] sm:max-h-[74vh] object-contain select-none"
+                />
+              </div>
+            )}
+
+            {/* Floating Right Arrow */}
+            {session.media && session.media.length > 1 && (
+              <button
+                type="button"
+                disabled={session.media && activeMediaIndex === session.media.length - 1}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveMediaIndex((i) =>
+                    i !== null && session.media && i < session.media.length - 1 ? i + 1 : i,
+                  );
+                }}
+                className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-30 grid h-11 w-11 sm:h-13 sm:w-13 place-items-center rounded-full border border-white/20 bg-black/60 text-white shadow-2xl backdrop-blur-md transition-all hover:scale-105 hover:bg-black/85 disabled:opacity-0 disabled:pointer-events-none"
+                aria-label="Next photo"
+              >
+                <ChevronRight className="h-6 w-6" />
+              </button>
+            )}
           </div>
-        </div>
-      )}
+
+          {/* Footer with Captions and Thumbnails Strip */}
+          <div className="border-t border-ink/10 bg-card px-4 py-3 sm:px-6">
+            {session.media && session.media.length > 1 && (
+              <div className="flex items-center justify-center gap-2 overflow-x-auto py-1">
+                {session.media.map((thumb, idx) => (
+                  <button
+                    key={thumb.id}
+                    type="button"
+                    onClick={() => setActiveMediaIndex(idx)}
+                    className={cn(
+                      "relative h-11 w-16 sm:h-13 sm:w-20 shrink-0 overflow-hidden rounded-md border transition-all",
+                      activeMediaIndex === idx
+                        ? "border-primary ring-2 ring-primary"
+                        : "border-ink/15 opacity-60 hover:opacity-100",
+                    )}
+                    aria-label={`Go to photo ${idx + 1}`}
+                  >
+                    <Image
+                      src={thumb.thumbnail_url || thumb.url}
+                      alt={thumb.caption || `Thumbnail ${idx + 1}`}
+                      className="h-full w-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </DrawerContent>
+      </Drawer>
     </>
   );
 };
