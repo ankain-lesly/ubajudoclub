@@ -20,7 +20,7 @@ export const averageOf = (values: number[]): number =>
     ? Math.round(values.reduce((a, b) => a + b, 0) / values.length)
     : 0;
 
-export const shortDate = (iso?: string): string => {
+export const shortDate = (iso?: string | null): string => {
   if (!iso) return "—";
   const d = new Date(`${iso.slice(0, 10)}T12:00:00`);
   if (Number.isNaN(d.getTime())) return "—";

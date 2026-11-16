@@ -2,19 +2,26 @@
 
 ## Project Context
 
-UBa Judo Club website: a React Router v8 **framework-mode** app (SSR enabled) built with Vite, Tailwind CSS v4 and shadcn/ui (base-nova). The package manager is **Bun**.
+UBa Judo Club website: a React Router v8 **framework-mode** app (SSR enabled) built with Vite, Tailwind CSS v4, shadcn/ui (base-nova), and **Supabase** backend. The package manager is **Bun**.
 
-There is no backend yet. `app/lib/api/client.ts` is a skeleton that returns empty data, and `app/lib/auth/AuthContext.tsx` is a skeleton that is always signed out. Replace their internals when a real backend exists. Call sites should not need to change.
+Backend and data persistence are powered by Supabase:
+- `app/lib/supabase/client.ts`: browser client singleton using `@supabase/ssr`.
+- `app/lib/supabase/server.ts`: SSR-safe server client helper with cookie synchronization.
+- `app/lib/supabase/types.ts`: TypeScript Database definitions.
+- `app/lib/api/client.ts`: Supabase table operations (`events`, `members`, `training_sessions`, `attendance`, `promotions`, `join_requests`) and auth wrappers.
+- `app/lib/auth/AuthContext.tsx`: Supabase Auth session provider and reactive state.
 
 ## Key Files
 
 - `app/root.tsx`: document shell, global meta/links, providers (React Query, Auth, Toaster).
 - `app/routes.ts`: route config (all routes are declared here).
 - `app/routes/*.tsx`: route modules. Public data pages use server `loader`s.
-- `app/lib/api/`: data access (`client.ts` skeleton, `public.ts` loader helpers).
-- `app/lib/auth/`: auth context and `return-to` helper.
+- `app/lib/supabase/`: Supabase client, server, and schema types.
+- `app/lib/api/`: data access (`client.ts` Supabase entities, `public.ts` loader helpers).
+- `app/lib/auth/`: Supabase auth context and `return-to` helper.
 - `app/lib/data/`: static club data and event/coach helpers.
 - `app/components/`: UI. `ui/` holds shadcn primitives.
+- `supabase/`: configuration, migrations (`init_schema.sql`), and seed data.
 - `react-router.config.ts`: `ssr: true`. `vite.config.ts`: Tailwind and React Router plugins.
 
 ## Conventions

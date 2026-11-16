@@ -11,29 +11,57 @@ export type MemberStatus = "active" | "paused" | "inactive";
 
 export interface Member {
   id: string;
+  profile_id?: string | null;
   full_name: string;
-  matricule?: string;
-  program?: string;
+  matricule?: string | null;
+  program?: string | null;
   belt_rank: Rank;
+  current_belt?: string;
+  belt_awarded_date?: string | null;
   status: MemberStatus;
-  joined_on?: string;
-  phone?: string;
-  email?: string;
-  notes?: string;
+  joined_on?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  notes?: string | null;
   sessions_total?: number;
   sessions_since_promotion?: number;
-  last_attended?: string;
-  last_promotion_date?: string;
-  created_date?: string;
+  last_attended?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface SessionCoordinator {
+  id: string;
+  session_id: string;
+  member_id: string;
+  role?: string | null;
+  member?: Member | null;
+}
+
+export interface SessionMedia {
+  id: string;
+  session_id: string;
+  url: string;
+  public_id?: string | null;
+  thumbnail_url?: string | null;
+  media_type: "IMAGE" | "VIDEO";
+  caption?: string | null;
+  created_at?: string;
 }
 
 export interface TrainingSession {
   id: string;
-  session_date: string;
-  focus?: string;
-  coach?: string;
+  session_date?: string;
+  start_time?: string | null;
+  end_time?: string | null;
+  focus?: string | null;
+  coach?: string | null;
   attended_count?: number;
-  notes?: string;
+  notes?: string | null;
+  coordinators?: SessionCoordinator[];
+  media?: SessionMedia[];
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface AttendanceRecord {
@@ -41,19 +69,9 @@ export interface AttendanceRecord {
   session_id: string;
   member_id: string;
   member_name?: string;
-  session_date: string;
-  note?: string;
-}
-
-export interface Promotion {
-  id: string;
-  member_id: string;
-  member_name?: string;
-  from_rank: Rank;
-  to_rank: Rank;
-  promoted_on: string;
-  sessions_at_promotion?: number;
-  note?: string;
+  session_date?: string;
+  note?: string | null;
+  created_at?: string;
 }
 
 export interface JoinRequest {
@@ -61,11 +79,12 @@ export interface JoinRequest {
   created_date?: string;
   full_name: string;
   email: string;
-  phone?: string;
-  program?: string;
-  experience?: string;
-  message?: string;
-  status?: "new" | "contacted" | "joined" | "declined";
+  phone?: string | null;
+  program?: string | null;
+  experience?: string | null;
+  message?: string | null;
+  status?: "new" | "contacted" | "joined" | "declined" | "NEW" | "CONTACTED" | "JOINED" | "DECLINED";
+  converted_member_id?: string | null;
 }
 
 export interface NewMemberInput {

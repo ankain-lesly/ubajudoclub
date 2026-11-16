@@ -6,10 +6,14 @@ import {
   Minus,
   AlertTriangle,
   Award,
+  Calendar,
+  Clock,
+  ShieldCheck,
 } from "lucide-react";
-import type { AttendanceRecord, Member, TrainingSession } from "@/lib/types";
+import type { AttendanceRecord, Member, SessionMedia, TrainingSession } from "@/lib/types";
 import MetricCard from "@/components/coach/MetricCard";
 import BeltBar from "@/components/visual/BeltBar";
+import { SessionMediaPanel } from "@/components/coach/SessionMediaPanel";
 import {
   absentRegulars,
   averageOf,
@@ -25,6 +29,15 @@ interface WrapUpPanelProps {
   sessions: TrainingSession[];
   attendance: AttendanceRecord[];
   sessionDate: string;
+  onAddMedia?: (data: {
+    sessionId: string;
+    url: string;
+    mediaType: "IMAGE" | "VIDEO";
+    caption?: string;
+    publicId?: string;
+  }) => Promise<void>;
+  onDeleteMedia?: (mediaId: string) => Promise<void>;
+  onEditSession?: (session: TrainingSession) => void;
 }
 
 const WrapUpPanel = ({
@@ -32,6 +45,9 @@ const WrapUpPanel = ({
   sessions,
   attendance,
   sessionDate,
+  onAddMedia,
+  onDeleteMedia,
+  onEditSession,
 }: WrapUpPanelProps) => {
   const current = sessions.find((s) => s.session_date === sessionDate) ?? null;
   const past = useMemo(
@@ -61,8 +77,73 @@ const WrapUpPanel = ({
 
   const DeltaIcon = delta > 0 ? TrendingUp : delta < 0 ? TrendingDown : Minus;
 
+  // Format session time
+  const formattedTime = current?.start_time
+    ? new Date(current.start_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    : null;
+  const formattedEndTime = current?.end_time
+    ? new Date(current.end_time).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    : null;
+
   return (
     <div className="space-y-6">
+      {/* Session details card if session exists */}
+      {current && (
+        <div className="rounded-lg border border-ink/12 bg-card p-5 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-[9px] uppercase tracking-[0.2em] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">
+                Active Session
+              </span>
+              {formattedTime && (
+                <span className="flex items-center gap-1 font-mono text-[11px] text-muted-foreground">
+                  <Clock className="w-3 h-3 text-primary" />
+                  {formattedTime} {formattedEndTime ? `– ${formattedEndTime}` : ""}
+                </span>
+              )}
+            </div>
+            <h3 className="font-display text-lg font-semibold mt-1">
+              {current.focus || "Open Dojo Training & Randori"}
+            </h3>
+            {current.notes && (
+              <p className="text-xs text-muted-foreground mt-1 max-w-xl">{current.notes}</p>
+            )}
+
+            {/* Coordinators */}
+            {current.coordinators && current.coordinators.length > 0 && (
+              <div className="flex items-center gap-2 mt-3 text-xs">
+                <span className="font-mono text-[9px] uppercase text-muted-foreground">Coordinators:</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {current.coordinators.map((c) => {
+                    const memberName =
+                      members.find((m) => m.id === c.member_id)?.full_name || "Sensei";
+                    return (
+                      <span
+                        key={c.id || c.member_id}
+                        className="inline-flex items-center gap-1 bg-secondary px-2 py-0.5 rounded text-[11px] font-medium"
+                      >
+                        <ShieldCheck className="w-3 h-3 text-primary" />
+                        {memberName} {c.role ? `(${c.role})` : ""}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {onEditSession && (
+            <button
+              type="button"
+              onClick={() => onEditSession(current)}
+              className="rounded-full border border-ink/20 px-4 py-2 text-xs font-semibold hover:border-primary hover:text-primary transition-colors"
+            >
+              Edit Session Details
+            </button>
+          )}
+        </div>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           label="Turnout today"
@@ -99,6 +180,18 @@ const WrapUpPanel = ({
           icon={<Award className="h-4 w-4 text-muted-foreground" />}
         />
       </div>
+
+      {/* Session Media Section */}
+      {current && onAddMedia && onDeleteMedia && (
+        <div className="rounded-lg border border-ink/12 bg-card p-5">
+          <SessionMediaPanel
+            sessionId={current.id}
+            media={current.media || []}
+            onAddMedia={onAddMedia}
+            onDeleteMedia={onDeleteMedia}
+          />
+        </div>
+      )}
 
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="rounded-lg border border-ink/12 bg-card">
