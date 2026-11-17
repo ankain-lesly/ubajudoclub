@@ -21,9 +21,15 @@ export default [
     route("join", "routes/join.tsx"),
   ]),
 
-  // Coach area: guarded, dedicated full-page dashboard (no public site header/footer)
+  // Coach area: guarded, dedicated full-page coach console
   layout("components/ProtectedRoute.tsx", [
-    route("dashboard", "routes/dashboard.tsx"),
+    route("dashboard", "routes/dashboard/layout.tsx", [
+      index("routes/dashboard/overview.tsx"),
+      route("sessions", "routes/dashboard/sessions.tsx"),
+      route("sessions/:id", "routes/dashboard/session.$id.tsx"),
+      route("athletes", "routes/dashboard/athletes.tsx"),
+      route("requests", "routes/dashboard/requests.tsx"),
+    ]),
   ]),
 
   // Auth screens: standalone layout

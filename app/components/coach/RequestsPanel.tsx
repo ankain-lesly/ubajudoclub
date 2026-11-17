@@ -1,30 +1,29 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Inbox,
   Loader2,
   Mail,
   Phone,
   GraduationCap,
-  Calendar,
   CheckCircle2,
   UserPlus,
   Trash2,
   Search,
-  ExternalLink,
-  MessageSquare,
-  ShieldCheck,
   Check,
   X,
 } from "lucide-react";
-import { api } from "@/lib/api/client";
-import type { JoinRequest, Member, Rank } from "@/lib/types";
-import { shortDate, todayISO } from "@/lib/data/coach";
-import { BELTS, beltFor } from "@/lib/data/club";
+import {
+  useJoinRequestsQuery,
+  useUpdateJoinRequestStatusMutation,
+  useConvertJoinRequestMutation,
+  useDeleteJoinRequestMutation,
+} from "@/lib/api";
+import type { JoinRequest, Rank } from "@/lib/types";
+import { shortDate } from "@/lib/data/coach";
+import { BELTS } from "@/lib/data/club";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-type Row = JoinRequest & { id: string; created_date?: string };
 
 interface RequestsPanelProps {
   onMemberAdded?: () => void;
@@ -39,41 +38,25 @@ const STATUS_FILTERS = [
 ] as const;
 
 export default function RequestsPanel({ onMemberAdded }: RequestsPanelProps) {
-  const [rows, setRows] = useState<Row[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: rows = [], isLoading } = useJoinRequestsQuery("all");
+  const updateStatusMutation = useUpdateJoinRequestStatusMutation();
+  const convertMutation = useConvertJoinRequestMutation();
+  const deleteMutation = useDeleteJoinRequestMutation();
+
   const [busyId, setBusyId] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
 
   // Convert to Member dialog state
-  const [convertingRow, setConvertingRow] = useState<Row | null>(null);
+  const [convertingRow, setConvertingRow] = useState<JoinRequest | null>(null);
   const [convertBelt, setConvertBelt] = useState<Rank>("White");
   const [convertMatricule, setConvertMatricule] = useState("");
-  const [converting, setConverting] = useState(false);
 
-  const load = useCallback(async () => {
-    try {
-      const page = await api.entities.JoinRequest.filter(
-        {},
-        { sort: "-created_date", limit: 100 },
-      );
-      setRows((page.items ?? []) as Row[]);
-    } catch (err) {
-      console.error("Failed to load join requests:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    load();
-  }, [load]);
-
-  const updateStatus = async (row: Row, newStatus: string) => {
+  const updateStatus = async (row: JoinRequest, newStatus: "new" | "contacted" | "joined" | "declined") => {
+    if (!row.id) return;
     setBusyId(row.id);
     try {
-      await api.entities.JoinRequest.update(row.id, { status: newStatus });
-      await load();
+      await updateStatusMutation.mutateAsync({ id: row.id, status: newStatus });
     } catch (err) {
       console.error("Status update error:", err);
     } finally {
@@ -81,12 +64,11 @@ export default function RequestsPanel({ onMemberAdded }: RequestsPanelProps) {
     }
   };
 
-  const deleteRequest = async (row: Row) => {
-    if (!confirm(`Delete join request from ${row.full_name}?`)) return;
+  const deleteRequest = async (row: JoinRequest) => {
+    if (!row.id || !confirm(`Delete join request from ${row.full_name}?`)) return;
     setBusyId(row.id);
     try {
-      await api.entities.JoinRequest.delete(row.id);
-      await load();
+      await deleteMutation.mutateAsync(row.id);
     } catch (err) {
       console.error("Delete request error:", err);
     } finally {
@@ -94,47 +76,34 @@ export default function RequestsPanel({ onMemberAdded }: RequestsPanelProps) {
     }
   };
 
-  const handleStartConvert = (row: Row) => {
+  const handleStartConvert = (row: JoinRequest) => {
     setConvertingRow(row);
     setConvertBelt("White");
     setConvertMatricule("");
   };
 
   const handleConfirmConvert = async () => {
-    if (!convertingRow) return;
-    setConverting(true);
+    if (!convertingRow || !convertingRow.id) return;
     try {
-      // 1. Create a member record in public.members
-      const newMember = (await api.entities.Member.create({
-        full_name: convertingRow.full_name.trim(),
-        email: convertingRow.email.trim(),
-        phone: convertingRow.phone || null,
-        program: convertingRow.program || null,
-        matricule: convertMatricule.trim() || null,
-        belt_rank: convertBelt,
-        current_belt: convertBelt.toUpperCase(),
-        belt_awarded_date: todayISO(),
-        status: "active",
-        joined_on: todayISO(),
-      })) as Member;
-
-      // 2. Update join request status to 'joined' and store converted_member_id
-      await api.entities.JoinRequest.update(convertingRow.id, {
-        status: "joined",
-        converted_member_id: newMember.id,
+      await convertMutation.mutateAsync({
+        request: convertingRow,
+        memberData: {
+          full_name: convertingRow.full_name.trim(),
+          email: convertingRow.email.trim(),
+          phone: convertingRow.phone || null,
+          program: convertingRow.program || null,
+          matricule: convertMatricule.trim() || null,
+          belt_rank: convertBelt,
+        },
       });
 
-      // 3. Reload requests and notify parent
       setConvertingRow(null);
-      await load();
       if (onMemberAdded) {
         onMemberAdded();
       }
     } catch (err: any) {
       console.error("Failed to convert request to member:", err);
       alert(`Error converting member: ${err?.message || "Unknown error"}`);
-    } finally {
-      setConverting(false);
     }
   };
 
@@ -168,7 +137,7 @@ export default function RequestsPanel({ onMemberAdded }: RequestsPanelProps) {
       });
   }, [rows, statusFilter, searchQuery]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center gap-3 rounded-xl border border-ink/10 bg-card py-20 text-xs text-muted-foreground">
         <Loader2 className="h-5 w-5 animate-spin text-primary" />
@@ -294,7 +263,7 @@ export default function RequestsPanel({ onMemberAdded }: RequestsPanelProps) {
               variant="outline"
               size="sm"
               onClick={() => setConvertingRow(null)}
-              disabled={converting}
+              disabled={convertMutation.isPending}
               className="h-8 text-xs"
             >
               Cancel
@@ -302,11 +271,11 @@ export default function RequestsPanel({ onMemberAdded }: RequestsPanelProps) {
             <Button
               type="button"
               size="sm"
-              disabled={converting}
+              disabled={convertMutation.isPending}
               onClick={handleConfirmConvert}
               className="h-8 gap-1.5 bg-primary px-3.5 text-xs text-white"
             >
-              {converting ? (
+              {convertMutation.isPending ? (
                 <>
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   <span>Adding to Roster...</span>
@@ -386,7 +355,7 @@ export default function RequestsPanel({ onMemberAdded }: RequestsPanelProps) {
                     )}
 
                     <span className="font-mono text-[10px] text-muted-foreground ml-auto sm:ml-0">
-                      {shortDate(row.created_date)}
+                      {shortDate(row.created_at)}
                     </span>
                   </div>
 

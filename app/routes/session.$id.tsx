@@ -28,6 +28,7 @@ import Aura from "@/components/visual/Aura";
 import Reveal from "@/components/visual/Reveal";
 import SectionBackdrop from "@/components/visual/SectionBackdrop";
 import { VENUE } from "@/lib/data/club";
+import { getOgImageUrl } from "@/lib/media/cloudinary";
 import { cn } from "@/lib/utils";
 import type { Route } from "./+types/session.$id";
 
@@ -51,6 +52,21 @@ function isToday(isoDateString?: string): boolean {
   return dateStr === localDate || dateStr === utcDate;
 }
 
+function computeSessionDuration(startTime?: string | null, endTime?: string | null): string {
+  if (!startTime || !endTime) return "2h";
+  const [sh, sm] = startTime.split(":").map(Number);
+  const [eh, em] = endTime.split(":").map(Number);
+  if (isNaN(sh) || isNaN(eh)) return "2h";
+  const startMins = sh * 60 + (sm || 0);
+  const endMins = eh * 60 + (em || 0);
+  const diffMins = endMins - startMins;
+  if (diffMins <= 0) return "2h";
+  const hours = Math.floor(diffMins / 60);
+  const mins = diffMins % 60;
+  if (mins === 0) return `${hours}h`;
+  return `${hours}h ${mins}m`;
+}
+
 export function meta({ loaderData }: Route.MetaArgs) {
   if (!loaderData) {
     return [{ title: "Session not found — UBa Judo Club" }];
@@ -62,7 +78,9 @@ export function meta({ loaderData }: Route.MetaArgs) {
   const selectedMedia =
     session.media?.find((m) => m.media_type === "IMAGE") ??
     session.media?.[0];
-  const firstMediaImage = selectedMedia?.thumbnail_url || selectedMedia?.url;
+  const firstMediaImage = selectedMedia
+    ? getOgImageUrl(selectedMedia.url, selectedMedia.media_type)
+    : undefined;
   const title = `${isTodaySession ? "Today's Session " : ""}${session.focus || "Training Session"} — UBa Judo Club`;
   
   // Compact social description under 125 characters with high-converting CTA
@@ -372,6 +390,85 @@ const SessionDetail = ({ loaderData }: Route.ComponentProps) => {
             </div>
           </div>
 
+          {/* Attendance & Session Stats */}
+          <div className="space-y-6">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary">
+                Session Log
+              </p>
+              <h2 className="mt-3 font-display text-2xl font-semibold tracking-[-0.02em]">
+                Attendance & Details
+              </h2>
+            </div>
+
+            <div className="space-y-5 rounded-xl border border-ink/10 bg-card p-6 shadow-xs">
+              {/* Primary Turnout & Duration */}
+              <div className="flex items-center justify-between border-b border-ink/8 pb-4">
+                <div>
+                  <p className="text-xs text-muted-foreground">
+                    Judoka on Mat
+                  </p>
+                  <p className="mt-1 font-display text-3xl font-semibold tracking-tight text-foreground">
+                    {session.attended_count || 0}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">
+                    Duration
+                  </p>
+                  <p className="mt-1 font-display text-2xl font-semibold tracking-tight text-foreground">
+                    {computeSessionDuration(session.start_time, session.end_time)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Time & Venue Info */}
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div>
+                  <span className="text-muted-foreground">Time</span>
+                  <p className="mt-0.5 font-medium text-foreground">
+                    {session.start_time} – {session.end_time}
+                  </p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Location</span>
+                  <p className="mt-0.5 font-medium text-foreground">
+                    {VENUE.name}
+                  </p>
+                </div>
+              </div>
+
+              {/* Lead Coach & Coordinators */}
+              {(session.coach || (session.coordinators && session.coordinators.length > 0)) && (
+                <div className="border-t border-ink/8 pt-4">
+                  <p className="text-xs text-muted-foreground">
+                    Coordinators
+                  </p>
+                  <div className="mt-2.5 space-y-2">
+                    {session.coach && (
+                      <div className="flex items-center justify-between rounded-lg bg-secondary/30 px-3 py-2 text-xs">
+                        <span className="font-medium text-foreground">{session.coach}</span>
+                        <span className="font-mono text-[10px] text-primary">Lead Coach</span>
+                      </div>
+                    )}
+                    {session.coordinators?.map((c) => (
+                      <div
+                        key={c.id}
+                        className="flex items-center justify-between rounded-lg bg-secondary/30 px-3 py-2 text-xs"
+                      >
+                        <span className="font-medium text-foreground">
+                          {c.member?.full_name || "Coordinator"}
+                        </span>
+                        <span className="font-mono text-[10px] text-muted-foreground">
+                          {c.role || "Assistant"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* Prominent Large Media Cards Section */}
@@ -387,11 +484,12 @@ const SessionDetail = ({ loaderData }: Route.ComponentProps) => {
                 </h2>
               </div>
               <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                Click any frame for interactive fullscreen preview
+                Click any photo to open viewer
               </p>
             </div>
 
-            <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 sm:gap-6">
+            {/* Mobile: 2 columns, Desktop: 3 columns */}
+            <div className="mt-8 grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
               {session.media.map((item, idx) => (
                 <button
                   key={item.id}
@@ -418,17 +516,17 @@ const SessionDetail = ({ loaderData }: Route.ComponentProps) => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-mono text-[10px] uppercase tracking-[0.32em] text-primary">
-                  Nearby on the calendar
+                  On the calendar
                 </p>
                 <h3 className="mt-1 font-display text-xl font-semibold">
-                  Other Recent Sessions
+                  Recent Sessions
                 </h3>
               </div>
               <Link
                 to="/sessions"
                 className="font-mono text-[10px] uppercase tracking-[0.18em] text-primary hover:underline"
               >
-                View all sessions →
+                All sessions →
               </Link>
             </div>
 
@@ -507,11 +605,12 @@ const SessionDetail = ({ loaderData }: Route.ComponentProps) => {
 
             {/* Full Content Width Media Display */}
             {activeMedia && (
-              <div className="relative w-full h-full flex items-center justify-center p-2 sm:p-4">
+              <div className="relative w-full h-full flex-1 flex items-center justify-center p-2 sm:p-6 overflow-hidden">
                 <Image
                   src={activeMedia.url}
                   alt={activeMedia.caption || `Session capture ${(activeMediaIndex ?? 0) + 1}`}
-                  className="w-full h-full max-h-[66vh] sm:max-h-[74vh] object-contain select-none"
+                  fittingType="fit"
+                  className="max-h-[64vh] sm:max-h-[72vh] max-w-full w-auto h-auto object-contain select-none rounded-lg shadow-2xl"
                 />
               </div>
             )}

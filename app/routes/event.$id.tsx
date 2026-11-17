@@ -9,6 +9,7 @@ import Aura from "@/components/visual/Aura";
 import Reveal from "@/components/visual/Reveal";
 import SectionBackdrop from "@/components/visual/SectionBackdrop";
 import { cn } from "@/lib/utils";
+import { getOgImageUrl } from "@/lib/media/cloudinary";
 
 export async function loader({ params }: Route.LoaderArgs) {
   const [event, all] = await Promise.all([getEvent(params.id), listEvents(30)]);
@@ -23,12 +24,22 @@ export function meta({ loaderData }: Route.MetaArgs) {
   if (!loaderData) return [{ title: "Event not found — UBa Judo Club" }];
   const { event } = loaderData;
   const description = event.summary ?? event.description ?? undefined;
+  const ogImage = event.image_url ? getOgImageUrl(event.image_url, "image") : undefined;
   return [
     { title: `${event.title} — UBa Judo Club` },
     ...(description ? [{ name: "description", content: description }] : []),
+    { property: "og:site_name", content: "UBa Judo Club" },
     { property: "og:title", content: event.title },
-    ...(event.image_url
-      ? [{ property: "og:image", content: event.image_url }]
+    ...(description ? [{ property: "og:description", content: description }] : []),
+    ...(ogImage
+      ? [
+          { property: "og:image", content: ogImage },
+          { property: "og:image:width", content: "1200" },
+          { property: "og:image:height", content: "630" },
+          { property: "og:image:type", content: "image/jpeg" },
+          { name: "twitter:card", content: "summary_large_image" },
+          { name: "twitter:image", content: ogImage },
+        ]
       : []),
   ];
 }

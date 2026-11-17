@@ -1,8 +1,18 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router";
-import { Menu, X, ArrowUpRight, ChevronDown } from "lucide-react";
+import {
+  Menu,
+  X,
+  ArrowUpRight,
+  ChevronDown,
+  ShieldCheck,
+  LogOut,
+  LayoutDashboard,
+} from "lucide-react";
 import ClubMark from "@/components/visual/ClubMark";
 import ThemeToggle from "@/components/theme/ThemeToggle";
+import { useAuth } from "@/lib/auth/AuthContext";
+import { api } from "@/lib/api/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,10 +36,14 @@ const DOJO_MENU_ITEMS = [
 ];
 
 const SiteHeader = () => {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [mobileDojoOpen, setMobileDojoOpen] = useState(true);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+
+  const isCoachOrAdmin =
+    user && (user.role === "coach" || user.role === "admin");
 
   const isDojoActive = DOJO_MENU_ITEMS.some((item) =>
     location.pathname.startsWith(item.to),
@@ -51,8 +65,7 @@ const SiteHeader = () => {
         scrolled
           ? "border-ink/10 bg-background/85 backdrop-blur-xl"
           : "border-transparent bg-background/40 backdrop-blur-sm",
-      )}
-    >
+      )}>
       <div className="mx-auto flex h-[72px] max-w-6xl items-center justify-between px-5 lg:px-8">
         <Link to="/" className="flex items-center gap-3">
           <ClubMark className="h-9 w-9" />
@@ -80,8 +93,7 @@ const SiteHeader = () => {
                     ? "bg-ink text-paper"
                     : "text-foreground/70 hover:bg-ink/5 hover:text-foreground",
                 )
-              }
-            >
+              }>
               {link.label}
             </NavLink>
           ))}
@@ -94,8 +106,7 @@ const SiteHeader = () => {
                 isDojoActive
                   ? "bg-ink text-paper"
                   : "text-foreground/70 hover:bg-ink/5 hover:text-foreground",
-              )}
-            >
+              )}>
               <span>Dojo</span>
               <ChevronDown className="h-3.5 w-3.5 opacity-60 transition-transform duration-200 group-data-[state=open]:rotate-180" />
             </DropdownMenuTrigger>
@@ -103,14 +114,12 @@ const SiteHeader = () => {
             <DropdownMenuContent
               align="start"
               sideOffset={8}
-              className="w-56 rounded-xl border border-ink/12 bg-card p-1.5 shadow-xl backdrop-blur-md"
-            >
+              className="w-56 rounded-xl border border-ink/12 bg-card p-1.5 shadow-xl backdrop-blur-md">
               {DOJO_MENU_ITEMS.map((item) => (
                 <DropdownMenuItem
                   key={item.to}
                   render={<Link to={item.to} />}
-                  className="flex flex-col items-start gap-0.5 rounded-lg px-3 py-2 text-left transition-colors hover:bg-secondary/60 focus:bg-secondary/60"
-                >
+                  className="flex flex-col items-start gap-0.5 rounded-lg px-3 py-2 text-left transition-colors hover:bg-secondary/60 focus:bg-secondary/60">
                   <span className="text-[13px] font-medium text-foreground">
                     {item.label}
                   </span>
@@ -127,18 +136,36 @@ const SiteHeader = () => {
         <div className="hidden items-center gap-2 md:flex">
           <ThemeToggle />
           <Link
-            to="/login?returnTo=/dashboard"
-            className="rounded-full px-4 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground transition-colors hover:text-foreground"
-          >
-            Coach login
-          </Link>
-          <Link
             to="/join"
-            className="group inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-[13px] font-semibold text-primary-foreground transition-all hover:bg-primary/90"
-          >
+            className="group inline-flex items-center gap-2 rounded-full bg-primary px-5 py-2.5 text-[13px] font-semibold text-primary-foreground transition-all hover:bg-primary/90">
             Join a session
             <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
           </Link>
+          {isCoachOrAdmin ? (
+            <div className="flex items-center gap-2">
+              {/* TODO: DO a profile dropdown instead for desktop */}
+              <Link
+                to="/dashboard"
+                className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.16em] text-primary transition-all hover:bg-primary/20">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Dashboard</span>
+              </Link>
+              {/* <button
+                type="button"
+                onClick={() => api.auth.logout("/")}
+                className="rounded-full p-2 text-muted-foreground hover:text-foreground transition-colors"
+                title="Sign out"
+              >
+                <LogOut className="h-4 w-4" />
+              </button> */}
+            </div>
+          ) : (
+            <Link
+              to="/login?returnTo=/dashboard"
+              className="rounded-full px-4 py-2 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground transition-colors hover:text-foreground">
+              Login
+            </Link>
+          )}
         </div>
 
         {/* Mobile Hamburger Button */}
@@ -146,8 +173,7 @@ const SiteHeader = () => {
           type="button"
           onClick={() => setOpen((v) => !v)}
           className="grid h-10 w-10 place-items-center rounded-full border border-ink/12 md:hidden"
-          aria-label={open ? "Close menu" : "Open menu"}
-        >
+          aria-label={open ? "Close menu" : "Open menu"}>
           {open ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
         </button>
       </div>
@@ -165,8 +191,7 @@ const SiteHeader = () => {
                   "block border-b border-ink/8 py-3.5 font-display text-lg",
                   isActive ? "text-primary font-semibold" : "text-foreground",
                 )
-              }
-            >
+              }>
               {link.label}
             </NavLink>
           ))}
@@ -176,8 +201,7 @@ const SiteHeader = () => {
             <button
               type="button"
               onClick={() => setMobileDojoOpen((v) => !v)}
-              className="flex w-full items-center justify-between font-display text-lg text-foreground"
-            >
+              className="flex w-full items-center justify-between font-display text-lg text-foreground">
               <span>Dojo</span>
               <ChevronDown
                 className={cn(
@@ -200,10 +224,11 @@ const SiteHeader = () => {
                           ? "bg-secondary text-primary font-medium"
                           : "text-muted-foreground hover:text-foreground",
                       )
-                    }
-                  >
+                    }>
                     <span className="block font-medium">{item.label}</span>
-                    <span className="block text-[11px] opacity-75">{item.desc}</span>
+                    <span className="block text-[11px] opacity-75">
+                      {item.desc}
+                    </span>
                   </NavLink>
                 ))}
               </div>
@@ -213,16 +238,31 @@ const SiteHeader = () => {
           <div className="mt-5 flex flex-col gap-2">
             <Link
               to="/join"
-              className="rounded-full bg-primary px-5 py-3 text-center text-sm font-semibold text-primary-foreground"
-            >
+              className="rounded-full bg-primary px-5 py-3 text-center text-sm font-semibold text-primary-foreground">
               Join a session
             </Link>
-            <Link
-              to="/login?returnTo=/dashboard"
-              className="rounded-full border border-ink/15 px-5 py-3 text-center text-sm font-medium"
-            >
-              Coach login
-            </Link>
+            {isCoachOrAdmin ? (
+              <div className="flex flex-col gap-2">
+                <Link
+                  to="/dashboard"
+                  className="rounded-full bg-ink px-5 py-3 text-center text-sm font-medium text-paper flex items-center justify-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                  <span>Dashboard</span>
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => api.auth.logout("/")}
+                  className="rounded-full border border-ink/15 px-5 py-2.5 text-center text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground">
+                  Sign out
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/login?returnTo=/dashboard"
+                className="rounded-full border border-ink/15 px-5 py-3 text-center text-sm font-medium">
+                Login
+              </Link>
+            )}
             <div className="mt-2 flex items-center justify-between rounded-full border border-ink/12 px-4 py-2">
               <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
                 Appearance

@@ -12,7 +12,6 @@ export const MOCK_MEMBERS: Member[] = [
     sessions_total: 142,
     sessions_since_promotion: 38,
     last_attended: "2026-11-14",
-    belt_awarded_date: "2025-11-20",
   },
   {
     id: "mem-2",
@@ -25,7 +24,6 @@ export const MOCK_MEMBERS: Member[] = [
     sessions_total: 58,
     sessions_since_promotion: 14,
     last_attended: "2026-11-14",
-    belt_awarded_date: "2026-06-12",
   },
   {
     id: "mem-3",
@@ -38,7 +36,6 @@ export const MOCK_MEMBERS: Member[] = [
     sessions_total: 110,
     sessions_since_promotion: 24,
     last_attended: "2026-11-14",
-    belt_awarded_date: "2026-03-10",
   },
   {
     id: "mem-4",
@@ -51,7 +48,6 @@ export const MOCK_MEMBERS: Member[] = [
     sessions_total: 82,
     sessions_since_promotion: 18,
     last_attended: "2026-11-11",
-    belt_awarded_date: "2026-02-15",
   },
   {
     id: "mem-5",
@@ -64,7 +60,6 @@ export const MOCK_MEMBERS: Member[] = [
     sessions_total: 79,
     sessions_since_promotion: 15,
     last_attended: "2026-11-14",
-    belt_awarded_date: "2026-02-15",
   },
   {
     id: "mem-6",
@@ -77,7 +72,6 @@ export const MOCK_MEMBERS: Member[] = [
     sessions_total: 36,
     sessions_since_promotion: 8,
     last_attended: "2026-11-11",
-    belt_awarded_date: "2025-05-18",
   },
   {
     id: "mem-7",
@@ -90,7 +84,6 @@ export const MOCK_MEMBERS: Member[] = [
     sessions_total: 22,
     sessions_since_promotion: 2,
     last_attended: "2026-11-11",
-    belt_awarded_date: "2026-10-28",
   },
   {
     id: "mem-8",
@@ -127,7 +120,6 @@ export const MOCK_MEMBERS: Member[] = [
     sessions_total: 165,
     sessions_since_promotion: 65,
     last_attended: "2026-11-07",
-    belt_awarded_date: "2024-12-10",
   },
   {
     id: "mem-11",
@@ -140,7 +132,6 @@ export const MOCK_MEMBERS: Member[] = [
     sessions_total: 41,
     sessions_since_promotion: 13,
     last_attended: "2026-11-11",
-    belt_awarded_date: "2025-05-18",
   },
   {
     id: "mem-12",

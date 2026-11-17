@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { Link } from "react-router";
 import {
   Calendar,
   Clock,
@@ -237,9 +238,13 @@ export function SessionsPanel({
                     </span>
                   </div>
 
-                  <h4 className="font-display text-base font-semibold text-foreground">
-                    {s.focus || "Open Mat & Randori Drills"}
-                  </h4>
+                  <Link
+                    to={`/dashboard/sessions/${s.id}`}
+                    className="font-display text-base font-semibold text-foreground hover:text-primary transition-colors inline-flex items-center gap-1.5"
+                  >
+                    <span>{s.focus || "Open Mat & Randori Drills"}</span>
+                    <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-60 transition-opacity" />
+                  </Link>
 
                   {s.notes && (
                     <p className="line-clamp-1 text-xs text-muted-foreground">
@@ -284,16 +289,13 @@ export function SessionsPanel({
 
                 {/* Right Section: Action Controls */}
                 <div className="flex items-center gap-2 border-t border-ink/8 pt-3 sm:border-t-0 sm:pt-0 shrink-0">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => onSelectSessionForCheckIn(s)}
-                    className="h-8 gap-1.5 text-xs border-ink/15 hover:bg-secondary"
+                  <Link
+                    to={`/dashboard/sessions/${s.id}`}
+                    className="inline-flex items-center h-8 gap-1.5 rounded-md border border-ink/15 bg-card px-3 text-xs font-medium text-foreground hover:bg-secondary transition-colors"
                   >
                     <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
-                    <span>Check-in</span>
-                  </Button>
+                    <span>Mat Desk</span>
+                  </Link>
 
                   <Button
                     type="button"
@@ -303,7 +305,7 @@ export function SessionsPanel({
                     className="h-8 gap-1.5 text-xs border-ink/15 hover:bg-secondary"
                   >
                     <Film className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span>Wrap-up & Media</span>
+                    <span>Wrap-up</span>
                   </Button>
 
                   <Button

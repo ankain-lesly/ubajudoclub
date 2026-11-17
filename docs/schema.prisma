@@ -13,44 +13,6 @@ generator client {
 }
 
 // ------------------------------------------------------------------------------
-// Enums (Standardized UPPERCASE)
-// ------------------------------------------------------------------------------
-
-enum Role {
-  COACH
-  MEMBER
-  ADMIN
-}
-
-enum BeltRank {
-  WHITE
-  YELLOW
-  ORANGE
-  GREEN
-  BLUE
-  BROWN
-  BLACK
-}
-
-enum MemberStatus {
-  ACTIVE
-  PAUSED
-  INACTIVE
-}
-
-enum JoinRequestStatus {
-  NEW
-  CONTACTED
-  JOINED
-  DECLINED
-}
-
-enum MediaType {
-  IMAGE
-  VIDEO
-}
-
-// ------------------------------------------------------------------------------
 // Models
 // ------------------------------------------------------------------------------
 
@@ -60,7 +22,7 @@ model Profile {
   id        String   @id @db.Uuid
   email     String   @unique
   fullName  String?  @map("full_name")
-  role      Role     @default(MEMBER)
+  role      String   @default("member")
   avatarUrl String?  @map("avatar_url")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -72,23 +34,21 @@ model Profile {
 }
 
 /// Normalized athlete entity on the dojo roster.
-/// Can exist independently on the dojo roster, and can optionally link
-/// to a user `Profile` when the student creates an online account.
+/// Uses capitalized belt_rank ("White", "Yellow", "Orange", "Green", "Blue", "Brown", "Black").
 model Member {
-  id              String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  profileId       String?      @unique @map("profile_id") @db.Uuid
-  fullName        String       @map("full_name")
-  matricule       String?      @unique
-  program         String?
-  currentBelt     BeltRank     @default(WHITE) @map("current_belt")
-  beltAwardedDate DateTime?    @default(now()) @map("belt_awarded_date") @db.Date
-  status          MemberStatus @default(ACTIVE)
-  joinedOn        DateTime?    @default(now()) @map("joined_on") @db.Date
-  phone           String?
-  email           String?
-  notes           String?
-  createdAt       DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt       DateTime     @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profileId String?   @unique @map("profile_id") @db.Uuid
+  fullName  String    @map("full_name")
+  matricule String?   @unique
+  program   String?
+  beltRank  String    @default("White") @map("belt_rank")
+  status    String    @default("active")
+  joinedOn  DateTime? @default(now()) @map("joined_on") @db.Date
+  phone     String?
+  email     String?
+  notes     String?
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   // Relations
   profile             Profile?              @relation(fields: [profileId], references: [id], onDelete: SetNull)
@@ -97,17 +57,18 @@ model Member {
   convertedFrom       JoinRequest?          @relation("ConvertedMember")
 
   @@index([status])
-  @@index([currentBelt])
+  @@index([beltRank])
   @@map("members")
 }
 
 /// Dojo training session schedule, syllabus, and duration.
-/// `startTime` contains both the session date and starting timestamp, avoiding date desync.
+/// `startTime` contains both the session date and starting timestamp.
 model TrainingSession {
   id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   startTime DateTime  @map("start_time") @db.Timestamptz(6)
   endTime   DateTime? @map("end_time") @db.Timestamptz(6)
   focus     String?
+  coach     String?
   notes     String?
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
@@ -122,12 +83,11 @@ model TrainingSession {
 }
 
 /// Relational junction allowing multiple coordinators (drawn from Member) per session.
-/// Composite unique index covers `sessionId` on the left; explicit index covers `memberId`.
 model SessionCoordinator {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   sessionId String   @map("session_id") @db.Uuid
   memberId  String   @map("member_id") @db.Uuid
-  role      String?  @default("Lead") // e.g. "Lead", "Assistant", "Guest Sensei"
+  role      String?  @default("Lead")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   session TrainingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
@@ -139,16 +99,15 @@ model SessionCoordinator {
 }
 
 /// Photos and technique/drill videos captured during training sessions.
-/// Stores `publicId` and `thumbnailUrl` for clean Cloudinary/storage asset lifecycle management.
 model SessionMedia {
-  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  sessionId    String    @map("session_id") @db.Uuid
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId    String   @map("session_id") @db.Uuid
   url          String
-  publicId     String?   @map("public_id")
-  thumbnailUrl String?   @map("thumbnail_url")
-  mediaType    MediaType @default(IMAGE) @map("media_type")
+  publicId     String?  @map("public_id")
+  thumbnailUrl String?  @map("thumbnail_url")
+  mediaType    String   @default("IMAGE") @map("media_type")
   caption      String?
-  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   session TrainingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
@@ -157,7 +116,6 @@ model SessionMedia {
 }
 
 /// Pure junction entity recording individual tatami attendances.
-/// Composite unique index covers `sessionId` on the left; explicit index covers `memberId`.
 model Attendance {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   sessionId String   @map("session_id") @db.Uuid
@@ -174,21 +132,37 @@ model Attendance {
 }
 
 /// Prospective athlete submissions from the public `/join` page.
-/// Links to `convertedMemberId` when approved to prevent duplicate account creation.
 model JoinRequest {
-  id                String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  fullName          String            @map("full_name")
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  fullName          String   @map("full_name")
   email             String
   phone             String?
   program           String?
   experience        String?
   message           String?
-  status            JoinRequestStatus @default(NEW)
-  convertedMemberId String?           @unique @map("converted_member_id") @db.Uuid
-  createdAt         DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  status            String   @default("new")
+  convertedMemberId String?  @unique @map("converted_member_id") @db.Uuid
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt         DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   convertedMember Member? @relation("ConvertedMember", fields: [convertedMemberId], references: [id], onDelete: SetNull)
 
   @@index([status])
   @@map("join_requests")
+}
+
+/// Club events, tournaments, seminars, and belt promotion trials.
+model ClubEvent {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title       String
+  kind        String
+  startDate   DateTime  @map("start_date") @db.Timestamptz(6)
+  endDate     DateTime? @map("end_date") @db.Timestamptz(6)
+  location    String?
+  description String?
+  isPublished Boolean   @default(false) @map("is_published")
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("events")
 }

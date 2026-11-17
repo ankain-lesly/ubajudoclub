@@ -16,9 +16,6 @@ export interface Member {
   matricule?: string | null;
   program?: string | null;
   belt_rank: Rank;
-  current_belt?: string;
-  belt_awarded_date?: string | null;
-  last_promotion_date?: string | null;
   status: MemberStatus;
   joined_on?: string | null;
   phone?: string | null;
@@ -45,7 +42,7 @@ export interface SessionMedia {
   url: string;
   public_id?: string | null;
   thumbnail_url?: string | null;
-  media_type: "IMAGE" | "VIDEO";
+  media_type: "IMAGE" | "VIDEO" | string;
   caption?: string | null;
   created_at?: string;
 }
@@ -77,15 +74,16 @@ export interface AttendanceRecord {
 
 export interface JoinRequest {
   id?: string;
-  created_date?: string;
   full_name: string;
   email: string;
   phone?: string | null;
   program?: string | null;
   experience?: string | null;
   message?: string | null;
-  status?: "new" | "contacted" | "joined" | "declined" | "NEW" | "CONTACTED" | "JOINED" | "DECLINED";
+  status?: "new" | "contacted" | "joined" | "declined";
   converted_member_id?: string | null;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface NewMemberInput {
@@ -110,7 +108,8 @@ export type EventKind =
   | "Grading"
   | "Seminar"
   | "Social"
-  | "Camp";
+  | "Camp"
+  | string;
 
 export interface ClubEvent {
   id: string;
@@ -120,11 +119,15 @@ export interface ClubEvent {
   end_date?: string;
   start_time?: string;
   venue?: string;
+  location?: string | null;
   summary?: string;
-  description?: string;
+  description?: string | null;
   image_url?: string;
   entry_note?: string;
   featured?: boolean;
+  is_published?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface GalleryItem {
@@ -142,5 +145,4 @@ export interface PublicStats {
   promotions_this_term: number;
   turnout_series: TurnoutPoint[];
   belt_distribution: BeltCount[];
-  updated_at?: string;
 }

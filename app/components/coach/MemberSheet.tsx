@@ -72,7 +72,6 @@ export function MemberSheet({ open, member, onClose, onSave }: MemberSheetProps)
         matricule: matricule.trim() || null,
         program: program.trim() || null,
         belt_rank: beltRank,
-        current_belt: beltRank.toUpperCase(),
         status,
         phone: phone.trim() || null,
         email: email.trim() || null,

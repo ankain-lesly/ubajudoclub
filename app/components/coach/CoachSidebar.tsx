@@ -1,8 +1,7 @@
-import { Link } from "react-router";
+import { Link, NavLink, useLocation } from "react-router";
 import {
-  ClipboardCheck,
+  LayoutDashboard,
   Calendar,
-  Activity,
   Users,
   Inbox,
   LogOut,
@@ -10,89 +9,77 @@ import {
   ShieldCheck,
   Plus,
   Clock,
+  Globe,
 } from "lucide-react";
 import ClubMark from "@/components/visual/ClubMark";
 import { Button } from "@/components/ui/button";
 import type { TrainingSession } from "@/lib/types";
 import { shortDate } from "@/lib/data/coach";
 
-export type DashboardTab = "checkin" | "sessions" | "wrapup" | "athletes" | "requests";
-
 interface CoachSidebarProps {
-  currentTab: DashboardTab;
-  onTabChange: (tab: DashboardTab) => void;
   email?: string;
   role?: string;
   onSignOut: () => void;
-  activeSession: TrainingSession | null;
-  totalMembersCount: number;
-  totalSessionsCount: number;
-  checkedInCount: number;
-  onScheduleNew: () => void;
+  activeSession?: TrainingSession | null;
+  totalMembersCount?: number;
+  totalSessionsCount?: number;
+  pendingRequestsCount?: number;
+  onScheduleNew?: () => void;
   onCloseMobileDrawer?: () => void;
 }
 
 export function CoachSidebar({
-  currentTab,
-  onTabChange,
   email,
   role = "admin",
   onSignOut,
   activeSession,
   totalMembersCount,
   totalSessionsCount,
-  checkedInCount,
+  pendingRequestsCount,
   onScheduleNew,
   onCloseMobileDrawer,
 }: CoachSidebarProps) {
-  const handleNav = (tab: DashboardTab) => {
-    onTabChange(tab);
-    onCloseMobileDrawer?.();
-  };
+  const location = useLocation();
 
-  const navGroups = [
+  const navItems = [
     {
-      title: "Mat Operations",
-      items: [
-        {
-          key: "checkin" as DashboardTab,
-          label: "Mat Check-in",
-          icon: ClipboardCheck,
-          badge: checkedInCount > 0 ? `${checkedInCount} on mat` : undefined,
-          badgeColor: "bg-primary/10 text-primary",
-        },
-        {
-          key: "sessions" as DashboardTab,
-          label: "Training Sessions",
-          icon: Calendar,
-          badge: totalSessionsCount > 0 ? String(totalSessionsCount) : undefined,
-          badgeColor: "bg-secondary text-muted-foreground",
-        },
-        {
-          key: "wrapup" as DashboardTab,
-          label: "Turnout & Media",
-          icon: Activity,
-          badge: (activeSession?.media || []).length > 0 ? `${activeSession?.media?.length} files` : undefined,
-          badgeColor: "bg-secondary text-muted-foreground",
-        },
-      ],
+      to: "/dashboard",
+      end: true,
+      label: "Overview",
+      icon: LayoutDashboard,
     },
     {
-      title: "Club Management",
-      items: [
-        {
-          key: "athletes" as DashboardTab,
-          label: "Athletes Ledger",
-          icon: Users,
-          badge: totalMembersCount > 0 ? String(totalMembersCount) : undefined,
-          badgeColor: "bg-secondary text-muted-foreground",
-        },
-        {
-          key: "requests" as DashboardTab,
-          label: "Join Requests",
-          icon: Inbox,
-        },
-      ],
+      to: "/dashboard/sessions",
+      end: false,
+      label: "Sessions",
+      icon: Calendar,
+      badge:
+        typeof totalSessionsCount === "number" && totalSessionsCount > 0
+          ? String(totalSessionsCount)
+          : undefined,
+      badgeColor: "bg-white/10 text-white/80",
+    },
+    {
+      to: "/dashboard/athletes",
+      end: false,
+      label: "Athletes Ledger",
+      icon: Users,
+      badge:
+        typeof totalMembersCount === "number" && totalMembersCount > 0
+          ? String(totalMembersCount)
+          : undefined,
+      badgeColor: "bg-white/10 text-white/80",
+    },
+    {
+      to: "/dashboard/requests",
+      end: false,
+      label: "Join Requests",
+      icon: Inbox,
+      badge:
+        typeof pendingRequestsCount === "number" && pendingRequestsCount > 0
+          ? String(pendingRequestsCount)
+          : undefined,
+      badgeColor: "bg-primary text-white",
     },
   ];
 
@@ -118,49 +105,71 @@ export function CoachSidebar({
 
       {/* Navigation Links */}
       <div className="flex-1 space-y-6 overflow-y-auto px-3 py-5">
-        {navGroups.map((group) => (
-          <div key={group.title} className="space-y-1.5">
-            <p className="px-3 font-mono text-[9px] uppercase tracking-[0.24em] text-white/40">
-              {group.title}
-            </p>
-            <div className="space-y-1">
-              {group.items.map((item) => {
-                const isActive = currentTab === item.key;
-                const Icon = item.icon;
+        <div className="space-y-1.5">
+          <p className="px-3 font-mono text-[9px] uppercase tracking-[0.24em] text-white/40">
+            Dojo Operations
+          </p>
+          <div className="space-y-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
 
-                return (
-                  <button
-                    key={item.key}
-                    type="button"
-                    onClick={() => handleNav(item.key)}
-                    className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-xs font-medium transition-all ${
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.end}
+                  onClick={() => onCloseMobileDrawer?.()}
+                  className={({ isActive }) =>
+                    `flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-xs font-medium transition-all ${
                       isActive
                         ? "bg-white/12 text-white shadow-xs"
                         : "text-white/70 hover:bg-white/6 hover:text-white"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <Icon
-                        className={`h-4 w-4 shrink-0 ${
-                          isActive ? "text-primary" : "text-white/60"
-                        }`}
-                      />
-                      <span className="truncate">{item.label}</span>
-                    </div>
+                    }`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <Icon
+                          className={`h-4 w-4 shrink-0 ${
+                            isActive ? "text-primary" : "text-white/60"
+                          }`}
+                        />
+                        <span className="truncate">{item.label}</span>
+                      </div>
 
-                    {item.badge && (
-                      <span
-                        className={`rounded-full px-2 py-0.5 font-mono text-[9px] font-medium ${item.badgeColor}`}
-                      >
-                        {item.badge}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+                      {item.badge && (
+                        <span
+                          className={`rounded-full px-2 py-0.5 font-mono text-[9px] font-medium ${item.badgeColor}`}
+                        >
+                          {item.badge}
+                        </span>
+                      )}
+                    </>
+                  )}
+                </NavLink>
+              );
+            })}
           </div>
-        ))}
+        </div>
+
+        {/* Public Website Bridge */}
+        <div className="space-y-1.5">
+          <p className="px-3 font-mono text-[9px] uppercase tracking-[0.24em] text-white/40">
+            Club Public Site
+          </p>
+          <Link
+            to="/"
+            onClick={() => onCloseMobileDrawer?.()}
+            className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-medium text-white/70 hover:bg-white/6 hover:text-white transition-all"
+          >
+            <div className="flex items-center gap-2.5">
+              <Globe className="h-4 w-4 text-white/50" />
+              <span>Public Website</span>
+            </div>
+            <ArrowUpRight className="h-3.5 w-3.5 text-white/40" />
+          </Link>
+        </div>
 
         {/* Active Session Mini Card */}
         <div className="rounded-xl border border-white/10 bg-white/5 p-3.5 space-y-2.5">
@@ -187,18 +196,30 @@ export function CoachSidebar({
             </p>
           </div>
 
-          <Button
-            type="button"
-            size="sm"
-            onClick={() => {
-              onScheduleNew();
-              onCloseMobileDrawer?.();
-            }}
-            className="w-full h-7 gap-1 bg-white/10 text-white text-[11px] hover:bg-white/20 shadow-none border border-white/10"
-          >
-            <Plus className="h-3 w-3" />
-            Schedule Session
-          </Button>
+          {activeSession ? (
+            <Link
+              to={`/dashboard/sessions/${activeSession.id}`}
+              onClick={() => onCloseMobileDrawer?.()}
+              className="inline-flex items-center justify-center w-full h-7 gap-1 rounded bg-primary text-white text-[11px] font-medium hover:bg-primary/90 transition-colors"
+            >
+              Enter Mat Desk
+            </Link>
+          ) : (
+            onScheduleNew && (
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => {
+                  onScheduleNew();
+                  onCloseMobileDrawer?.();
+                }}
+                className="w-full h-7 gap-1 bg-white/10 text-white text-[11px] hover:bg-white/20 shadow-none border border-white/10"
+              >
+                <Plus className="h-3 w-3" />
+                Schedule Session
+              </Button>
+            )
+          )}
         </div>
       </div>
 

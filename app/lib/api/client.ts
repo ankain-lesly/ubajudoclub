@@ -40,6 +40,13 @@ const TABLE_CONFIGS: Record<string, TableConfig> = {
   JoinRequest: { readTable: "join_requests", writeTable: "join_requests" },
 };
 
+const LEGACY_COLUMN_MAP: Record<string, string> = {
+  created_date: "created_at",
+  current_belt: "belt_rank",
+};
+
+const normalizeColumn = (col: string): string => LEGACY_COLUMN_MAP[col] ?? col;
+
 const createEntity = <T = any>(name: string): EntityApi<T> => {
   const config = TABLE_CONFIGS[name] || { readTable: name.toLowerCase(), writeTable: name.toLowerCase() };
 
@@ -50,7 +57,8 @@ const createEntity = <T = any>(name: string): EntityApi<T> => {
 
       if (options?.sort) {
         const isDesc = options.sort.startsWith("-");
-        const column = isDesc ? options.sort.slice(1) : options.sort;
+        const rawColumn = isDesc ? options.sort.slice(1) : options.sort;
+        const column = normalizeColumn(rawColumn);
         query = query.order(column, { ascending: !isDesc });
       }
 
@@ -73,14 +81,16 @@ const createEntity = <T = any>(name: string): EntityApi<T> => {
       if (criteria) {
         for (const [key, val] of Object.entries(criteria)) {
           if (val !== undefined) {
-            query = query.eq(key, val);
+            const column = normalizeColumn(key);
+            query = query.eq(column, val);
           }
         }
       }
 
       if (options?.sort) {
         const isDesc = options.sort.startsWith("-");
-        const column = isDesc ? options.sort.slice(1) : options.sort;
+        const rawColumn = isDesc ? options.sort.slice(1) : options.sort;
+        const column = normalizeColumn(rawColumn);
         query = query.order(column, { ascending: !isDesc });
       }
 
@@ -112,16 +122,20 @@ const createEntity = <T = any>(name: string): EntityApi<T> => {
 
     create: async (payload: Partial<T> & Record<string, unknown>) => {
       const supabase = getSupabaseBrowserClient();
-      // Remove any view-calculated or joined fields if present in payload
+      // Remove any view-calculated, joined, or legacy fields if present in payload
       const sanitized = { ...payload };
       delete (sanitized as any).sessions_total;
       delete (sanitized as any).sessions_since_promotion;
       delete (sanitized as any).last_attended;
+      delete (sanitized as any).last_promotion_date;
       delete (sanitized as any).attended_count;
       delete (sanitized as any).coordinators;
       delete (sanitized as any).media;
       delete (sanitized as any).member_name;
       delete (sanitized as any).session_date;
+      delete (sanitized as any).created_date;
+      delete (sanitized as any).current_belt;
+      delete (sanitized as any).belt_awarded_date;
 
       const { data, error } = await supabase
         .from(config.writeTable as any)
@@ -141,7 +155,12 @@ const createEntity = <T = any>(name: string): EntityApi<T> => {
       delete (sanitized as any).sessions_total;
       delete (sanitized as any).sessions_since_promotion;
       delete (sanitized as any).last_attended;
+      delete (sanitized as any).last_promotion_date;
       delete (sanitized as any).attended_count;
+      delete (sanitized as any).session_date;
+      delete (sanitized as any).created_date;
+      delete (sanitized as any).current_belt;
+      delete (sanitized as any).belt_awarded_date;
 
       const { data, error } = await supabase
         .from(config.writeTable as any)

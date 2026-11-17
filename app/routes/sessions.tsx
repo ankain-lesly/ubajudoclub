@@ -16,6 +16,7 @@ import RingField from "@/components/visual/RingField";
 import Reveal from "@/components/visual/Reveal";
 import SectionBackdrop from "@/components/visual/SectionBackdrop";
 import { cn } from "@/lib/utils";
+import { getOgImageUrl } from "@/lib/media/cloudinary";
 import type { Route } from "./+types/sessions";
 
 export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
@@ -24,7 +25,9 @@ export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
   const selectedMedia =
     firstSession?.media?.find((m) => m.media_type === "IMAGE") ??
     firstSession?.media?.[0];
-  const firstImage = selectedMedia?.thumbnail_url || selectedMedia?.url;
+  const firstImage = selectedMedia
+    ? getOgImageUrl(selectedMedia.url, selectedMedia.media_type)
+    : undefined;
   const description =
     "Explore training logs, syllabus focuses, and photo captures from UBa Judo Club at UBa Campus Amphi 100.";
 

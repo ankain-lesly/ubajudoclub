@@ -76,6 +76,7 @@ export type Database = {
           location: string | null;
           start_date: string;
           title: string;
+          updated_at: string;
         };
         Insert: {
           created_at?: string;
@@ -87,6 +88,7 @@ export type Database = {
           location?: string | null;
           start_date: string;
           title: string;
+          updated_at?: string;
         };
         Update: {
           created_at?: string;
@@ -98,13 +100,14 @@ export type Database = {
           location?: string | null;
           start_date?: string;
           title?: string;
+          updated_at?: string;
         };
         Relationships: [];
       };
       join_requests: {
         Row: {
           converted_member_id: string | null;
-          created_date: string;
+          created_at: string;
           email: string;
           experience: string | null;
           full_name: string;
@@ -113,10 +116,11 @@ export type Database = {
           phone: string | null;
           program: string | null;
           status: string;
+          updated_at: string;
         };
         Insert: {
           converted_member_id?: string | null;
-          created_date?: string;
+          created_at?: string;
           email: string;
           experience?: string | null;
           full_name: string;
@@ -125,10 +129,11 @@ export type Database = {
           phone?: string | null;
           program?: string | null;
           status?: string;
+          updated_at?: string;
         };
         Update: {
           converted_member_id?: string | null;
-          created_date?: string;
+          created_at?: string;
           email?: string;
           experience?: string | null;
           full_name?: string;
@@ -137,6 +142,7 @@ export type Database = {
           phone?: string | null;
           program?: string | null;
           status?: string;
+          updated_at?: string;
         };
         Relationships: [
           {
@@ -157,65 +163,47 @@ export type Database = {
       };
       members: {
         Row: {
-          belt_awarded_date: string | null;
           belt_rank: string;
-          created_date: string;
-          current_belt: string;
+          created_at: string;
           email: string | null;
           full_name: string;
           id: string;
           joined_on: string | null;
-          last_attended: string | null;
-          last_promotion_date: string | null;
           matricule: string | null;
           notes: string | null;
           phone: string | null;
           profile_id: string | null;
           program: string | null;
-          sessions_since_promotion: number;
-          sessions_total: number;
           status: string;
           updated_at: string | null;
         };
         Insert: {
-          belt_awarded_date?: string | null;
           belt_rank?: string;
-          created_date?: string;
-          current_belt?: string;
+          created_at?: string;
           email?: string | null;
           full_name: string;
           id?: string;
           joined_on?: string | null;
-          last_attended?: string | null;
-          last_promotion_date?: string | null;
           matricule?: string | null;
           notes?: string | null;
           phone?: string | null;
           profile_id?: string | null;
           program?: string | null;
-          sessions_since_promotion?: number;
-          sessions_total?: number;
           status?: string;
           updated_at?: string | null;
         };
         Update: {
-          belt_awarded_date?: string | null;
           belt_rank?: string;
-          created_date?: string;
-          current_belt?: string;
+          created_at?: string;
           email?: string | null;
           full_name?: string;
           id?: string;
           joined_on?: string | null;
-          last_attended?: string | null;
-          last_promotion_date?: string | null;
           matricule?: string | null;
           notes?: string | null;
           phone?: string | null;
           profile_id?: string | null;
           program?: string | null;
-          sessions_since_promotion?: number;
-          sessions_total?: number;
           status?: string;
           updated_at?: string | null;
         };
@@ -362,38 +350,32 @@ export type Database = {
       };
       training_sessions: {
         Row: {
-          attended_count: number;
           coach: string | null;
           created_at: string;
           end_time: string | null;
           focus: string | null;
           id: string;
           notes: string | null;
-          session_date: string;
           start_time: string | null;
           updated_at: string | null;
         };
         Insert: {
-          attended_count?: number;
           coach?: string | null;
           created_at?: string;
           end_time?: string | null;
           focus?: string | null;
           id?: string;
           notes?: string | null;
-          session_date?: string;
           start_time?: string | null;
           updated_at?: string | null;
         };
         Update: {
-          attended_count?: number;
           coach?: string | null;
           created_at?: string;
           end_time?: string | null;
           focus?: string | null;
           id?: string;
           notes?: string | null;
-          session_date?: string;
           start_time?: string | null;
           updated_at?: string | null;
         };
@@ -403,9 +385,8 @@ export type Database = {
     Views: {
       members_with_stats: {
         Row: {
-          belt_awarded_date: string | null;
+          belt_rank: string | null;
           created_at: string | null;
-          current_belt: string | null;
           email: string | null;
           full_name: string | null;
           id: string | null;
@@ -434,6 +415,7 @@ export type Database = {
       sessions_with_turnout: {
         Row: {
           attended_count: number | null;
+          coach: string | null;
           created_at: string | null;
           end_time: string | null;
           focus: string | null;
