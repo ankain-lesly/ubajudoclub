@@ -15,6 +15,7 @@ import {
   uploadMultipleSessionMedia,
   deleteSessionMedia,
 } from "@/lib/supabase/storage";
+import { isVideoUrl } from "@/lib/media/cloudinary";
 
 interface SessionMediaPanelProps {
   sessionId: string;
@@ -199,7 +200,7 @@ export function SessionMediaPanel({
           Click to browse or drop photos & videos here
         </p>
         <p className="mt-0.5 text-[10px] text-muted-foreground">
-          PNG, JPG, WebP, MP4, MOV up to 50MB per file (Supabase Storage)
+          PNG, JPG, WebP, MP4, MOV up to 100MB per file (Cloudinary CDN & Vault)
         </p>
       </div>
 
@@ -211,7 +212,7 @@ export function SessionMediaPanel({
           }`}
         >
           {media.map((item) => {
-            const isVideo = item.media_type === "VIDEO";
+            const isVideo = item.media_type === "VIDEO" || isVideoUrl(item.url);
             const isDeleting = deletingId === item.id;
 
             return (
@@ -221,22 +222,23 @@ export function SessionMediaPanel({
               >
                 <div className="relative aspect-video w-full overflow-hidden bg-black/5">
                   {isVideo ? (
-                    <div className="relative h-full w-full bg-ink/90">
+                    <div className="relative h-full w-full bg-black">
                       <video
                         src={item.url}
-                        controls={false}
+                        poster={
+                          item.thumbnail_url && !isVideoUrl(item.thumbnail_url)
+                            ? item.thumbnail_url
+                            : undefined
+                        }
+                        controls
                         preload="metadata"
-                        className="h-full w-full object-cover opacity-80"
+                        playsInline
+                        className="h-full w-full object-cover"
                       />
-                      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                        <div className="flex h-7 w-7 items-center justify-center rounded-full bg-black/60 text-white backdrop-blur-xs">
-                          <Film className="h-3.5 w-3.5" />
-                        </div>
-                      </div>
                     </div>
                   ) : (
                     <img
-                      src={item.url}
+                      src={item.thumbnail_url || item.url}
                       alt={item.caption || "Session photo"}
                       className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                       loading="lazy"

@@ -8,6 +8,8 @@ import {
   ArrowRight,
   Sparkles,
   ChevronRight,
+  Film,
+  Play,
 } from "lucide-react";
 import { getPublicSessions } from "@/lib/api/public";
 import { Image } from "@/components/ui/image";
@@ -16,7 +18,7 @@ import RingField from "@/components/visual/RingField";
 import Reveal from "@/components/visual/Reveal";
 import SectionBackdrop from "@/components/visual/SectionBackdrop";
 import { cn } from "@/lib/utils";
-import { getOgImageUrl } from "@/lib/media/cloudinary";
+import { getOgImageUrl, isVideoUrl } from "@/lib/media/cloudinary";
 import type { Route } from "./+types/sessions";
 
 export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
@@ -237,20 +239,41 @@ const Sessions = ({ loaderData }: Route.ComponentProps) => {
                   )}
 
                   {/* First Media Preview Thumbnail */}
-                  {firstMedia && (
-                    <div className="relative mt-5 overflow-hidden rounded-lg border border-ink/10 bg-band">
-                      <Image
-                        src={firstMedia.url}
-                        alt={firstMedia.caption || session.focus || "Session photo"}
-                        className="h-36 w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-band/75 via-transparent to-transparent" />
-                      <div className="absolute bottom-2.5 left-3 flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.16em] text-band-foreground">
-                        <Camera className="h-3 w-3" />
-                        <span>{session.media?.length} photo capture{session.media?.length === 1 ? "" : "s"}</span>
+                  {firstMedia && (() => {
+                    const isVideo = firstMedia.media_type === "VIDEO" || isVideoUrl(firstMedia.url);
+                    const hasImageThumb = firstMedia.thumbnail_url && !isVideoUrl(firstMedia.thumbnail_url);
+
+                    return (
+                      <div className="relative mt-5 overflow-hidden rounded-lg border border-ink/10 bg-band">
+                        {isVideo && !hasImageThumb ? (
+                          <video
+                            src={firstMedia.url}
+                            preload="metadata"
+                            muted
+                            playsInline
+                            className="h-36 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                        ) : (
+                          <Image
+                            src={firstMedia.thumbnail_url || firstMedia.url}
+                            alt={firstMedia.caption || session.focus || "Session preview"}
+                            className="h-36 w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-band/75 via-transparent to-transparent pointer-events-none" />
+                        {isVideo && (
+                          <div className="absolute top-2.5 right-3 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-[9px] font-mono text-white backdrop-blur-xs pointer-events-none">
+                            <Film className="h-3 w-3" />
+                            <span>VIDEO</span>
+                          </div>
+                        )}
+                        <div className="absolute bottom-2.5 left-3 flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.16em] text-band-foreground pointer-events-none">
+                          <Camera className="h-3 w-3" />
+                          <span>{session.media?.length} capture{session.media?.length === 1 ? "" : "s"}</span>
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </div>
 
                 {/* Card Footer */}

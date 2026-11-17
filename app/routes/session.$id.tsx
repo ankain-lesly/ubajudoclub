@@ -13,6 +13,8 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
+  Play,
+  Film,
 } from "lucide-react";
 import { getPublicSessionById } from "@/lib/api/public";
 import { Image } from "@/components/ui/image";
@@ -28,7 +30,7 @@ import Aura from "@/components/visual/Aura";
 import Reveal from "@/components/visual/Reveal";
 import SectionBackdrop from "@/components/visual/SectionBackdrop";
 import { VENUE } from "@/lib/data/club";
-import { getOgImageUrl } from "@/lib/media/cloudinary";
+import { getOgImageUrl, isVideoUrl } from "@/lib/media/cloudinary";
 import { cn } from "@/lib/utils";
 import type { Route } from "./+types/session.$id";
 
@@ -324,32 +326,73 @@ const SessionDetail = ({ loaderData }: Route.ComponentProps) => {
 
             {/* First Session Media (Featured Banner) */}
             <div>
-              {firstMedia ? (
-                <figure className="group relative overflow-hidden rounded-2xl border border-ink/12 bg-band shadow-[0_30px_70px_-35px_rgba(20,21,15,0.7)]">
-                  <Image
-                    src={firstMedia.url}
-                    alt={firstMedia.caption || session.focus || "Session banner"}
-                    className="h-[340px] w-full object-cover transition-transform duration-700 group-hover:scale-105 sm:h-[420px]"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-band/90 via-band/20 to-transparent" />
-                  <figcaption className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
-                    <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-primary">
-                      Official Session Capture
-                    </p>
-                    <p className="mt-1 text-sm font-medium leading-snug text-band-foreground">
-                      {firstMedia.caption}
-                    </p>
-                  </figcaption>
-                  <button
-                    type="button"
-                    onClick={() => setActiveMediaIndex(0)}
-                    className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-band/75 text-band-foreground backdrop-blur-md transition-transform hover:scale-110"
-                    aria-label="View photo fullscreen"
-                  >
-                    <Camera className="h-4 w-4" />
-                  </button>
-                </figure>
-              ) : (
+              {firstMedia ? (() => {
+                const isVideo = firstMedia.media_type === "VIDEO" || isVideoUrl(firstMedia.url);
+                const hasImageThumb = firstMedia.thumbnail_url && !isVideoUrl(firstMedia.thumbnail_url);
+
+                return (
+                  <figure className="group relative overflow-hidden rounded-2xl border border-ink/12 bg-band shadow-[0_30px_70px_-35px_rgba(20,21,15,0.7)]">
+                    {isVideo ? (
+                      <div className="relative h-[340px] w-full sm:h-[420px] bg-black">
+                        <video
+                          src={firstMedia.url}
+                          poster={hasImageThumb ? firstMedia.thumbnail_url! : undefined}
+                          controls
+                          playsInline
+                          preload="metadata"
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <>
+                        <Image
+                          src={firstMedia.thumbnail_url || firstMedia.url}
+                          alt={firstMedia.caption || session.focus || "Session banner"}
+                          className="h-[340px] w-full object-cover transition-transform duration-700 group-hover:scale-105 sm:h-[420px]"
+                        />
+                        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-band/90 via-band/20 to-transparent" />
+                      </>
+                    )}
+
+                    {!isVideo && (
+                      <figcaption className="pointer-events-none absolute inset-x-0 bottom-0 p-5 sm:p-6">
+                        <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-primary">
+                          Official Session Capture
+                        </p>
+                        <p className="mt-1 text-sm font-medium leading-snug text-band-foreground">
+                          {firstMedia.caption}
+                        </p>
+                      </figcaption>
+                    )}
+
+                    {isVideo && firstMedia.caption && (
+                      <figcaption className="border-t border-ink/10 bg-band/90 px-4 py-2 sm:px-5">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-primary">
+                            Official Video Capture
+                          </p>
+                          <span className="font-mono text-[9px] text-muted-foreground uppercase">
+                            Video Clip
+                          </span>
+                        </div>
+                        <p className="mt-0.5 text-xs font-medium text-band-foreground">
+                          {firstMedia.caption}
+                        </p>
+                      </figcaption>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => setActiveMediaIndex(0)}
+                      className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-band/75 text-band-foreground backdrop-blur-md transition-transform hover:scale-110 shadow-lg"
+                      aria-label={isVideo ? "View video fullscreen" : "View photo fullscreen"}
+                      title={isVideo ? "View video fullscreen" : "View photo fullscreen"}
+                    >
+                      {isVideo ? <Film className="h-4 w-4" /> : <Camera className="h-4 w-4" />}
+                    </button>
+                  </figure>
+                );
+              })() : (
                 <div className="flex h-[320px] w-full flex-col items-center justify-center rounded-2xl border border-ink/12 bg-card p-8 text-center text-muted-foreground">
                   <Camera className="h-8 w-8 text-muted-foreground/40" />
                   <p className="mt-3 font-display text-base font-medium">
@@ -480,32 +523,60 @@ const SessionDetail = ({ loaderData }: Route.ComponentProps) => {
                   Visual Archive & Mat Captures
                 </p>
                 <h2 className="mt-2 font-display text-2xl font-semibold tracking-[-0.02em] sm:text-3xl">
-                  Session Photography ({session.media.length})
+                  Session Media & Gallery ({session.media.length})
                 </h2>
               </div>
               <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                Click any photo to open viewer
+                Click any media to open viewer
               </p>
             </div>
 
             {/* Mobile: 2 columns, Desktop: 3 columns */}
-            <div className="mt-8 grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
-              {session.media.map((item, idx) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setActiveMediaIndex(idx)}
-                  className="group relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-ink/10 bg-band transition-all duration-300 hover:scale-[1.02] hover:border-ink/25 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
-                  aria-label={item.caption || `View photo ${idx + 1}`}
-                >
-                  <Image
-                    src={item.thumbnail_url || item.url}
-                    alt={item.caption || `Capture frame ${idx + 1}`}
-                    className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-                  />
-                  <div className="pointer-events-none absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/15" />
-                </button>
-              ))}
+            <div className="mt-8 grid grid-cols-2 lg:grid-cols-3 gap-2">
+              {session.media.map((item, idx) => {
+                const isVideo = item.media_type === "VIDEO" || isVideoUrl(item.url);
+                const hasImageThumb = item.thumbnail_url && !isVideoUrl(item.thumbnail_url);
+
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setActiveMediaIndex(idx)}
+                    className="group relative aspect-[16/10] w-full overflow-hidden rounded-2xl border border-ink/10 bg-band transition-all duration-300 hover:scale-[1.02] hover:border-ink/25 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    aria-label={item.caption || `View ${isVideo ? "video" : "photo"} ${idx + 1}`}
+                  >
+                    {isVideo && !hasImageThumb ? (
+                      <video
+                        src={item.url}
+                        preload="metadata"
+                        muted
+                        playsInline
+                        className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                      />
+                    ) : (
+                      <Image
+                        src={item.thumbnail_url || item.url}
+                        alt={item.caption || `Capture frame ${idx + 1}`}
+                        className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                      />
+                    )}
+                    <div className="pointer-events-none absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/20" />
+                    {isVideo && (
+                      <>
+                        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                          <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-black/65 text-white shadow-lg backdrop-blur-xs transition-transform duration-300 group-hover:scale-110">
+                            <Play className="h-5 w-5 fill-current ml-0.5" />
+                          </div>
+                        </div>
+                        <div className="pointer-events-none absolute top-2.5 right-2.5 flex items-center gap-1 rounded-md bg-black/60 px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-white backdrop-blur-xs">
+                          <Film className="h-3 w-3" />
+                          <span>Video</span>
+                        </div>
+                      </>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
@@ -569,7 +640,10 @@ const SessionDetail = ({ loaderData }: Route.ComponentProps) => {
           <DrawerHeader className="flex flex-row items-center justify-between border-b border-ink/10 px-5 py-3 sm:px-7">
             <div>
               <DrawerTitle className="font-display text-base font-semibold">
-                {activeMedia?.caption || "Session Photography"}
+                {activeMedia?.caption ||
+                  (activeMedia && (activeMedia.media_type === "VIDEO" || isVideoUrl(activeMedia.url))
+                    ? "Session Video"
+                    : "Session Photography")}
               </DrawerTitle>
               <DrawerDescription className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground mt-0.5">
                 {session.focus || "Mat Session"} · Frame {(activeMediaIndex ?? 0) + 1} of {session.media?.length || 0}
@@ -606,12 +680,28 @@ const SessionDetail = ({ loaderData }: Route.ComponentProps) => {
             {/* Full Content Width Media Display */}
             {activeMedia && (
               <div className="relative w-full h-full flex-1 flex items-center justify-center p-2 sm:p-6 overflow-hidden">
-                <Image
-                  src={activeMedia.url}
-                  alt={activeMedia.caption || `Session capture ${(activeMediaIndex ?? 0) + 1}`}
-                  fittingType="fit"
-                  className="max-h-[64vh] sm:max-h-[72vh] max-w-full w-auto h-auto object-contain select-none rounded-lg shadow-2xl"
-                />
+                {activeMedia.media_type === "VIDEO" || isVideoUrl(activeMedia.url) ? (
+                  <video
+                    key={activeMedia.url}
+                    src={activeMedia.url}
+                    poster={
+                      activeMedia.thumbnail_url && !isVideoUrl(activeMedia.thumbnail_url)
+                        ? activeMedia.thumbnail_url
+                        : undefined
+                    }
+                    controls
+                    autoPlay
+                    playsInline
+                    className="max-h-[64vh] sm:max-h-[72vh] max-w-full w-auto h-auto rounded-lg shadow-2xl bg-black"
+                  />
+                ) : (
+                  <Image
+                    src={activeMedia.url}
+                    alt={activeMedia.caption || `Session capture ${(activeMediaIndex ?? 0) + 1}`}
+                    fittingType="fit"
+                    className="max-h-[64vh] sm:max-h-[72vh] max-w-full w-auto h-auto object-contain select-none rounded-lg shadow-2xl"
+                  />
+                )}
               </div>
             )}
 
@@ -638,26 +728,45 @@ const SessionDetail = ({ loaderData }: Route.ComponentProps) => {
           <div className="border-t border-ink/10 bg-card px-4 py-3 sm:px-6">
             {session.media && session.media.length > 1 && (
               <div className="flex items-center justify-center gap-2 overflow-x-auto py-1">
-                {session.media.map((thumb, idx) => (
-                  <button
-                    key={thumb.id}
-                    type="button"
-                    onClick={() => setActiveMediaIndex(idx)}
-                    className={cn(
-                      "relative h-11 w-16 sm:h-13 sm:w-20 shrink-0 overflow-hidden rounded-md border transition-all",
-                      activeMediaIndex === idx
-                        ? "border-primary ring-2 ring-primary"
-                        : "border-ink/15 opacity-60 hover:opacity-100",
-                    )}
-                    aria-label={`Go to photo ${idx + 1}`}
-                  >
-                    <Image
-                      src={thumb.thumbnail_url || thumb.url}
-                      alt={thumb.caption || `Thumbnail ${idx + 1}`}
-                      className="h-full w-full object-cover"
-                    />
-                  </button>
-                ))}
+                {session.media.map((thumb, idx) => {
+                  const isThumbVideo = thumb.media_type === "VIDEO" || isVideoUrl(thumb.url);
+                  const hasImageThumb = thumb.thumbnail_url && !isVideoUrl(thumb.thumbnail_url);
+
+                  return (
+                    <button
+                      key={thumb.id}
+                      type="button"
+                      onClick={() => setActiveMediaIndex(idx)}
+                      className={cn(
+                        "relative h-11 w-16 sm:h-13 sm:w-20 shrink-0 overflow-hidden rounded-md border transition-all",
+                        activeMediaIndex === idx
+                          ? "border-primary ring-2 ring-primary"
+                          : "border-ink/15 opacity-60 hover:opacity-100",
+                      )}
+                      aria-label={`Go to ${isThumbVideo ? "video" : "photo"} ${idx + 1}`}
+                    >
+                      {isThumbVideo && !hasImageThumb ? (
+                        <video
+                          src={thumb.url}
+                          muted
+                          preload="metadata"
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <Image
+                          src={thumb.thumbnail_url || thumb.url}
+                          alt={thumb.caption || `Thumbnail ${idx + 1}`}
+                          className="h-full w-full object-cover"
+                        />
+                      )}
+                      {isThumbVideo && (
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none bg-black/25">
+                          <Play className="h-3 w-3 fill-white text-white" />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             )}
           </div>

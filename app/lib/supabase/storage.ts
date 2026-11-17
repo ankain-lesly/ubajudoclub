@@ -1,5 +1,11 @@
 import { getSupabaseBrowserClient } from "./client";
 import type { SessionMedia } from "@/lib/types";
+import {
+  isCloudinaryConfigured,
+  uploadToCloudinary,
+  getMediaThumbnailUrl,
+} from "@/lib/media/cloudinary";
+import { compressImageBeforeUpload } from "@/lib/media/compress";
 
 export interface UploadSessionMediaOptions {
   sessionId: string;
@@ -8,8 +14,9 @@ export interface UploadSessionMediaOptions {
 }
 
 /**
- * Upload a single photo or video to the 'session-media' Supabase storage bucket
- * and insert the corresponding row into public.session_media.
+ * Upload a single photo or video. Uses Cloudinary as the primary provider
+ * with automatic image compression, video poster extraction, and responsive thumbnails,
+ * falling back to Supabase storage if Cloudinary is not configured.
  */
 export async function uploadSessionMediaFile({
   sessionId,
@@ -17,22 +24,60 @@ export async function uploadSessionMediaFile({
   caption,
 }: UploadSessionMediaOptions): Promise<SessionMedia> {
   const supabase = getSupabaseBrowserClient();
-
   const fileExt = file.name.split(".").pop()?.toLowerCase() || "jpg";
-  const cleanBaseName = file.name
-    .replace(/\.[^/.]+$/, "")
-    .replace(/[^a-zA-Z0-9_-]/g, "_")
-    .slice(0, 32);
-  const path = `${sessionId}/${Date.now()}_${cleanBaseName}.${fileExt}`;
-
   const isVideo =
     file.type.startsWith("video/") ||
     ["mp4", "mov", "webm", "m4v", "avi", "mkv"].includes(fileExt);
   const mediaType: "IMAGE" | "VIDEO" = isVideo ? "VIDEO" : "IMAGE";
+  const defaultCaption = caption || file.name.replace(/\.[^/.]+$/, "");
+
+  // 1. Primary Provider: Cloudinary (optimizations, responsive thumbnails, OG cards)
+  if (isCloudinaryConfigured()) {
+    try {
+      const cloudRes = await uploadToCloudinary(file, {
+      folder: `ubajudo/sessions/${sessionId}`,
+        caption: defaultCaption,
+      });
+
+      const { data: mediaRecord, error: dbError } = await supabase
+        .from("session_media")
+        .insert({
+          session_id: sessionId,
+          url: cloudRes.secure_url,
+          public_id: cloudRes.public_id,
+          thumbnail_url: cloudRes.thumbnail_url,
+          media_type: cloudRes.resource_type === "video" ? "VIDEO" : "IMAGE",
+          caption: defaultCaption,
+        })
+        .select()
+        .single();
+
+      if (dbError) {
+        throw new Error(`Failed to save media metadata: ${dbError.message}`);
+      }
+
+      return mediaRecord as SessionMedia;
+    } catch (err: any) {
+      console.error("[MediaUpload] Cloudinary upload failed:", err);
+      throw new Error(`Cloudinary upload failed: ${err?.message || err}`);
+    }
+  }
+
+  // console.log("Not Configured")
+  // throw new Error("Not Conifgured")
+
+  // 2. Fallback Provider: Supabase Storage Bucket
+  const fileToUpload = isVideo ? file : await compressImageBeforeUpload(file);
+  const cleanBaseName = fileToUpload.name
+    .replace(/\.[^/.]+$/, "")
+    .replace(/[^a-zA-Z0-9_-]/g, "_")
+    .slice(0, 32);
+  const uploadExt = fileToUpload.name.split(".").pop()?.toLowerCase() || fileExt;
+  const path = `${sessionId}/${Date.now()}_${cleanBaseName}.${uploadExt}`;
 
   const { data: uploadData, error: uploadError } = await supabase.storage
     .from("session-media")
-    .upload(path, file, {
+    .upload(path, fileToUpload, {
       cacheControl: "3600",
       upsert: false,
     });
@@ -51,8 +96,9 @@ export async function uploadSessionMediaFile({
       session_id: sessionId,
       url: publicUrl,
       public_id: uploadData.path,
+      thumbnail_url: publicUrl,
       media_type: mediaType,
-      caption: caption || file.name.replace(/\.[^/.]+$/, ""),
+      caption: defaultCaption,
     })
     .select()
     .single();

@@ -321,7 +321,7 @@ export default function DashboardSessionDetailRoute() {
               Session Media & Technique Captures
             </h2>
             <p className="mt-1 text-xs text-muted-foreground">
-              Upload photos and video clips from this practice directly into the UBa Judo Club Supabase Storage vault.
+              Upload photos and video clips from this practice directly into the UBa Judo Club media vault (Cloudinary CDN).
             </p>
           </div>
 
