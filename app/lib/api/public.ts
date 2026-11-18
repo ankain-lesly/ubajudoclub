@@ -178,15 +178,34 @@ export async function getPublicSessionById(
       updated_at: s.updated_at ?? undefined,
     };
 
-    const others: TrainingSession[] = (otherSessionsRes.data || []).map((other: any) => ({
+    const otherData = otherSessionsRes.data || [];
+    const otherIds = otherData.map((o: any) => o.id).filter(Boolean);
+    let otherMediaMap = new Map<string, SessionMedia[]>();
+    if (otherIds.length > 0) {
+      try {
+        const { data: oMedia } = await supabase
+          .from("session_media")
+          .select("*")
+          .in("session_id", otherIds)
+          .order("created_at", { ascending: false });
+        (oMedia || []).forEach((m) => {
+          const list = otherMediaMap.get(m.session_id) || [];
+          list.push(m as SessionMedia);
+          otherMediaMap.set(m.session_id, list);
+        });
+      } catch {}
+    }
+
+    const others: TrainingSession[] = otherData.map((other: any) => ({
       id: other.id || "",
       session_date: other.session_date || (other.start_time ? other.start_time.split("T")[0] : ""),
       start_time: formatTimeHHmm(other.start_time, "17:00"),
       end_time: formatTimeHHmm(other.end_time, "19:00"),
       focus: other.focus || "Training Session",
       notes: other.notes || null,
-      coach: "Coach",
+      coach: other.coach || "Sensei",
       attended_count: Number(other.attended_count) || 0,
+      media: otherMediaMap.get(other.id) || [],
     }));
 
     return { session, others };

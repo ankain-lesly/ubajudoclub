@@ -1,5 +1,5 @@
 import type { Route } from "./+types/home";
-import { getPublicStats, listEvents } from "@/lib/api/public";
+import { getPublicStats, listEvents } from "@/lib/server/public";
 import Hero from "@/components/home/Hero";
 import Ticker from "@/components/home/Ticker";
 import StatStrip from "@/components/home/StatStrip";

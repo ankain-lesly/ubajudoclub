@@ -43,16 +43,11 @@ export default function Login() {
       subtitle="Log in to your account"
       footer={
         <>
-          Don&apos;t have an account?{" "}
+          Interested in training with us?{" "}
           <Link
-            to={
-              "/register" +
-              (returnTo !== "/"
-                ? "?returnTo=" + encodeURIComponent(returnTo)
-                : "")
-            }
+            to="/join"
             className="font-medium text-primary hover:underline">
-            Create one
+            Join Now
           </Link>
         </>
       }>

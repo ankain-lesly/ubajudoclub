@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
-import { api } from "@/lib/api/client";
+import { updatePassword } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,7 +26,7 @@ export default function ResetPassword() {
     }
     setLoading(true);
     try {
-      await api.auth.resetPassword({ resetToken, newPassword });
+      await updatePassword(newPassword);
       navigate("/login", { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to reset password");

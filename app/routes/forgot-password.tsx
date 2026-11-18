@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router";
-import { api } from "@/lib/api/client";
+import { requestPasswordReset } from "@/lib/auth/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +16,7 @@ export default function ForgotPassword() {
     e.preventDefault();
     setLoading(true);
     try {
-      await api.auth.resetPasswordRequest(email);
+      await requestPasswordReset(email);
     } catch {
       // Always show success regardless
     } finally {

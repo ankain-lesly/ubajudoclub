@@ -12,7 +12,7 @@ import {
   Sparkles,
   RotateCcw,
 } from "lucide-react";
-import { api } from "@/lib/api/client";
+import { useSubmitJoinRequestMutation } from "@/lib/api/member.queries";
 import { VENUE, WEEK } from "@/lib/data/club";
 import Aura from "@/components/visual/Aura";
 import SectionBackdrop from "@/components/visual/SectionBackdrop";
@@ -54,6 +54,7 @@ export default function Join() {
   const [form, setForm] = useState(initialForm);
   const [status, setStatus] = useState<"idle" | "sending" | "done">("idle");
   const [error, setError] = useState("");
+  const submitMutation = useSubmitJoinRequestMutation();
 
   const set = (key: keyof typeof initialForm, value: string) =>
     setForm((f) => ({ ...f, [key]: value }));
@@ -63,13 +64,13 @@ export default function Join() {
     setError("");
     setStatus("sending");
     try {
-      await api.entities.JoinRequest.create({
-        full_name: form.full_name.trim(),
-        email: form.email.trim(),
-        phone: form.phone.trim() || null,
-        program: form.program.trim() || null,
+      await submitMutation.mutateAsync({
+        full_name: form.full_name,
+        email: form.email,
+        phone: form.phone || null,
+        program: form.program || null,
         experience: form.experience,
-        message: form.message.trim() || null,
+        message: form.message || null,
         status: "new",
       });
       setStatus("done");

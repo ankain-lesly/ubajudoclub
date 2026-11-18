@@ -11,7 +11,7 @@ import {
 } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Route } from "./+types/calendar";
-import { listEvents } from "@/lib/api/public";
+import { listEvents } from "@/lib/server/public";
 import { KINDS, isUpcoming, kindStyle, sortByDate } from "@/lib/data/events";
 import MonthCalendar from "@/components/calendar/MonthCalendar";
 import DayAgenda from "@/components/calendar/DayAgenda";

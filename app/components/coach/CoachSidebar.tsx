@@ -10,6 +10,7 @@ import {
   Plus,
   Clock,
   Globe,
+  Settings,
 } from "lucide-react";
 import ClubMark from "@/components/visual/ClubMark";
 import { Button } from "@/components/ui/button";
@@ -62,7 +63,7 @@ export function CoachSidebar({
     {
       to: "/dashboard/athletes",
       end: false,
-      label: "Athletes Ledger",
+      label: "Athletes",
       icon: Users,
       badge:
         typeof totalMembersCount === "number" && totalMembersCount > 0
@@ -81,6 +82,12 @@ export function CoachSidebar({
           : undefined,
       badgeColor: "bg-primary text-white",
     },
+    {
+      to: "/dashboard/settings",
+      end: false,
+      label: "Settings",
+      icon: Settings,
+    },
   ];
 
   return (
@@ -88,7 +95,7 @@ export function CoachSidebar({
       {/* Top Brand Section */}
       <div className="p-5 border-b border-white/10">
         <div className="flex items-center gap-3">
-          <ClubMark className="h-9 w-9" inverted />
+          <ClubMark variant="crest" className="h-9 w-9" inverted />
           <div className="min-w-0 flex-1">
             <h1 className="font-display text-[15px] font-semibold leading-tight tracking-[-0.01em] text-white">
               UBa Judo Club
@@ -96,7 +103,7 @@ export function CoachSidebar({
             <div className="mt-1 flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
               <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-white/50">
-                Coach Console
+                Staff Console
               </p>
             </div>
           </div>
@@ -125,8 +132,7 @@ export function CoachSidebar({
                         ? "bg-white/12 text-white shadow-xs"
                         : "text-white/70 hover:bg-white/6 hover:text-white"
                     }`
-                  }
-                >
+                  }>
                   {({ isActive }) => (
                     <>
                       <div className="flex items-center gap-2.5 min-w-0">
@@ -140,8 +146,7 @@ export function CoachSidebar({
 
                       {item.badge && (
                         <span
-                          className={`rounded-full px-2 py-0.5 font-mono text-[9px] font-medium ${item.badgeColor}`}
-                        >
+                          className={`rounded-full px-2 py-0.5 font-mono text-[9px] font-medium ${item.badgeColor}`}>
                           {item.badge}
                         </span>
                       )}
@@ -161,8 +166,7 @@ export function CoachSidebar({
           <Link
             to="/"
             onClick={() => onCloseMobileDrawer?.()}
-            className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-medium text-white/70 hover:bg-white/6 hover:text-white transition-all"
-          >
+            className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-xs font-medium text-white/70 hover:bg-white/6 hover:text-white transition-all">
             <div className="flex items-center gap-2.5">
               <Globe className="h-4 w-4 text-white/50" />
               <span>Public Website</span>
@@ -187,11 +191,18 @@ export function CoachSidebar({
 
           <div>
             <p className="font-display text-xs font-medium text-white truncate">
-              {activeSession ? (activeSession.focus || "Open Mat Training") : "No session scheduled today"}
+              {activeSession
+                ? activeSession.focus || "Open Mat Training"
+                : "No session scheduled today"}
             </p>
             <p className="font-mono text-[10px] text-white/60">
               {activeSession
-                ? shortDate(activeSession.session_date || (activeSession.start_time ? activeSession.start_time.split("T")[0] : ""))
+                ? shortDate(
+                    activeSession.session_date ||
+                      (activeSession.start_time
+                        ? activeSession.start_time.split("T")[0]
+                        : ""),
+                  )
                 : "UBa Campus Amphi 100"}
             </p>
           </div>
@@ -200,8 +211,7 @@ export function CoachSidebar({
             <Link
               to={`/dashboard/sessions/${activeSession.id}`}
               onClick={() => onCloseMobileDrawer?.()}
-              className="inline-flex items-center justify-center w-full h-7 gap-1 rounded bg-primary text-white text-[11px] font-medium hover:bg-primary/90 transition-colors"
-            >
+              className="inline-flex items-center justify-center w-full h-7 gap-1 rounded bg-primary text-white text-[11px] font-medium hover:bg-primary/90 transition-colors">
               Enter Mat Desk
             </Link>
           ) : (
@@ -213,8 +223,7 @@ export function CoachSidebar({
                   onScheduleNew();
                   onCloseMobileDrawer?.();
                 }}
-                className="w-full h-7 gap-1 bg-white/10 text-white text-[11px] hover:bg-white/20 shadow-none border border-white/10"
-              >
+                className="w-full h-7 gap-1 bg-white/10 text-white text-[11px] hover:bg-white/20 shadow-none border border-white/10">
                 <Plus className="h-3 w-3" />
                 Schedule Session
               </Button>
@@ -228,28 +237,35 @@ export function CoachSidebar({
         <div className="flex items-center justify-between px-1.5">
           <div className="min-w-0">
             <p className="truncate text-xs font-medium text-white">
-              {email || "Coach Account"}
+              {email || "Staff Account"}
             </p>
             <div className="mt-0.5 flex items-center gap-1 text-[10px] text-white/50">
               <ShieldCheck className="h-3 w-3 text-primary" />
-              <span className="capitalize">{role}</span>
+              <span className="lowercase font-mono text-[10px]">{role}</span>
             </div>
           </div>
 
-          <Link
-            to="/"
-            className="flex h-7 w-7 items-center justify-center rounded-md border border-white/10 text-white/60 hover:bg-white/10 hover:text-white transition-colors"
-            title="Open Public Site"
-          >
-            <ArrowUpRight className="h-3.5 w-3.5" />
-          </Link>
+          <div className="flex items-center gap-1.5">
+            <Link
+              to="/dashboard/settings"
+              onClick={() => onCloseMobileDrawer?.()}
+              className="flex h-7 w-7 items-center justify-center rounded-md border border-white/10 text-white/60 hover:bg-white/10 hover:text-white transition-colors"
+              title="Account Settings">
+              <Settings className="h-3.5 w-3.5" />
+            </Link>
+            <Link
+              to="/"
+              className="flex h-7 w-7 items-center justify-center rounded-md border border-white/10 text-white/60 hover:bg-white/10 hover:text-white transition-colors"
+              title="Open Public Site">
+              <ArrowUpRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
         </div>
 
         <button
           type="button"
           onClick={onSignOut}
-          className="flex w-full items-center justify-center gap-2 rounded-lg bg-white/6 px-3 py-2 text-xs font-medium text-white/75 transition-colors hover:bg-white/12 hover:text-white"
-        >
+          className="flex w-full items-center justify-center gap-2 rounded-lg bg-white/6 px-3 py-2 text-xs font-medium text-white/75 transition-colors hover:bg-white/12 hover:text-white">
           <LogOut className="h-3.5 w-3.5" />
           <span>Sign out</span>
         </button>

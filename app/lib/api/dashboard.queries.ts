@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api/client";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import { todayISO } from "@/lib/data/coach";
 import type { JoinRequest, Member, TrainingSession } from "@/lib/types";
 
@@ -8,18 +8,21 @@ export function useDashboardOverviewQuery() {
     queryKey: ["dashboard_overview"],
     queryFn: async () => {
       const today = todayISO();
+      const supabase = getSupabaseBrowserClient();
+
       const [membersRes, sessionsRes, requestsRes] = await Promise.all([
-        api.entities.Member.filter({}, { limit: 500 }),
-        api.entities.TrainingSession.filter(
-          {},
-          { sort: "-start_time", limit: 20 }
-        ),
-        api.entities.JoinRequest.filter({}, { limit: 200 }),
+        supabase.from("members").select("*").limit(500),
+        supabase
+          .from("sessions_with_turnout")
+          .select("*")
+          .order("start_time", { ascending: false })
+          .limit(20),
+        supabase.from("join_requests").select("*").limit(200),
       ]);
 
-      const members = (membersRes.items ?? []) as Member[];
-      const sessions = (sessionsRes.items ?? []) as TrainingSession[];
-      const allRequests = (requestsRes.items ?? []) as JoinRequest[];
+      const members = (membersRes.data ?? []) as Member[];
+      const sessions = (sessionsRes.data ?? []) as TrainingSession[];
+      const allRequests = (requestsRes.data ?? []) as JoinRequest[];
       const pendingRequests = allRequests.filter(
         (r) => r.status === "new" || !r.status
       );

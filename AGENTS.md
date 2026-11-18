@@ -8,8 +8,10 @@ Backend and data persistence are powered by Supabase:
 - `app/lib/supabase/client.ts`: browser client singleton using `@supabase/ssr`.
 - `app/lib/supabase/server.ts`: SSR-safe server client helper with cookie synchronization.
 - `app/lib/supabase/types.ts`: TypeScript Database definitions.
-- `app/lib/api/client.ts`: Supabase table operations (`events`, `members`, `training_sessions`, `attendance`, `promotions`, `join_requests`) and auth wrappers.
+- `app/lib/auth/actions.ts`: Supabase Auth helpers (password reset, sign out).
 - `app/lib/auth/AuthContext.tsx`: Supabase Auth session provider and reactive state.
+- `app/lib/server/public.ts`: SSR-safe public loader data fetchers.
+- `app/lib/api/`: TanStack Query client query/mutation hooks (`member.queries.ts`, `session.queries.ts`, `dashboard.queries.ts`, `user.queries.ts`).
 
 ## Key Files
 
@@ -17,7 +19,8 @@ Backend and data persistence are powered by Supabase:
 - `app/routes.ts`: route config (all routes are declared here).
 - `app/routes/*.tsx`: route modules. Public data pages use server `loader`s.
 - `app/lib/supabase/`: Supabase client, server, and schema types.
-- `app/lib/api/`: data access (`client.ts` Supabase entities, `public.ts` loader helpers).
+- `app/lib/api/`: data access client hooks (`member.queries.ts`, `session.queries.ts`, `dashboard.queries.ts`, `user.queries.ts`).
+- `app/lib/server/`: SSR loaders (`public.ts`).
 - `app/lib/auth/`: Supabase auth context and `return-to` helper.
 - `app/lib/data/`: static club data and event/coach helpers.
 - `app/components/`: UI. `ui/` holds shadcn primitives.

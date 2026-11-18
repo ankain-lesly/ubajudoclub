@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, Outlet } from "react-router";
 import { Menu, Plus, Globe, ArrowUpRight } from "lucide-react";
-import { api } from "@/lib/api/client";
+import { signOutUser } from "@/lib/auth/actions";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { useDashboardOverviewQuery } from "@/lib/api/dashboard.queries";
 import { CoachSidebar } from "@/components/coach/CoachSidebar";
@@ -21,8 +21,8 @@ export default function DashboardLayout() {
   const { data: members = [] } = useMembersQuery();
   const saveSessionMutation = useSaveSessionMutation();
 
-  // Role access check: only coach and admin permitted
-  if (user && user.role !== "admin" && user.role !== "coach") {
+  // Role access check: only staff and admin permitted
+  if (user && user.role !== "admin" && user.role !== "staff") {
     return (
       <div className="mx-auto flex min-h-screen max-w-lg flex-col justify-center px-5 py-20">
         <div className="rounded-lg border border-ink/12 bg-card p-8">
@@ -30,10 +30,10 @@ export default function DashboardLayout() {
             Restricted
           </p>
           <h1 className="mt-4 font-display text-2xl font-semibold tracking-[-0.02em]">
-            Coach access only
+            Staff access only
           </h1>
           <p className="mt-3 text-[13.5px] leading-relaxed text-muted-foreground">
-            This console holds member records and attendance, so it is limited to the coaching team.
+            This console holds member records and attendance, so it is limited to the staff team.
             Ask a club admin to grant you access.
           </p>
           <Link
@@ -54,7 +54,7 @@ export default function DashboardLayout() {
         <CoachSidebar
           email={user?.email}
           role={user?.role}
-          onSignOut={() => api.auth.logout("/")}
+          onSignOut={() => signOutUser("/")}
           activeSession={overview?.todaySession ?? overview?.nextSession}
           totalMembersCount={overview?.totalMembersCount}
           totalSessionsCount={overview?.totalSessionsCount}
@@ -69,7 +69,7 @@ export default function DashboardLayout() {
           <CoachSidebar
             email={user?.email}
             role={user?.role}
-            onSignOut={() => api.auth.logout("/")}
+            onSignOut={() => signOutUser("/")}
             activeSession={overview?.todaySession ?? overview?.nextSession}
             totalMembersCount={overview?.totalMembersCount}
             totalSessionsCount={overview?.totalSessionsCount}
@@ -145,7 +145,11 @@ export default function DashboardLayout() {
 
             {/* Coach User Chip */}
             {user && (
-              <div className="hidden items-center gap-2 border-l border-ink/10 pl-3 md:flex">
+              <Link
+                to="/dashboard/settings"
+                className="hidden items-center gap-2 border-l border-ink/10 pl-3 md:flex hover:opacity-80 transition-opacity"
+                title="Account & Profile Settings"
+              >
                 <span className="grid h-7 w-7 place-items-center rounded-full bg-primary/10 text-xs font-semibold text-primary font-mono">
                   {user.email?.charAt(0).toUpperCase() || "C"}
                 </span>
@@ -157,7 +161,7 @@ export default function DashboardLayout() {
                     {user.role || "Coach"}
                   </span>
                 </div>
-              </div>
+              </Link>
             )}
           </div>
         </header>

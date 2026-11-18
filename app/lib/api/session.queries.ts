@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "@/lib/api/client";
+import { getSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   uploadMultipleSessionMedia,
   deleteSessionMedia,
@@ -17,19 +17,23 @@ export function useSessionsQuery(options?: { limit?: number }) {
   return useQuery({
     queryKey: [...SESSIONS_QUERY_KEY, options?.limit ?? 100],
     queryFn: async () => {
+      const supabase = getSupabaseBrowserClient();
+
       const [sessionsRes, coordinatorsRes, mediaRes] = await Promise.all([
-        api.entities.TrainingSession.filter(
-          {},
-          { sort: "-start_time", limit: options?.limit ?? 100 },
-        ),
-        api.entities.SessionCoordinator.filter({}, { limit: 300 }),
-        api.entities.SessionMedia.filter({}, { limit: 300 }),
+        supabase
+          .from("sessions_with_turnout")
+          .select("*")
+          .order("start_time", { ascending: false })
+          .limit(options?.limit ?? 100),
+        supabase.from("session_coordinators").select("*").limit(300),
+        supabase.from("session_media").select("*").limit(300),
       ]);
 
-      const rawSessions = (sessionsRes.items ?? []) as TrainingSession[];
-      const rawCoordinators = (coordinatorsRes.items ??
-        []) as SessionCoordinator[];
-      const rawMedia = (mediaRes.items ?? []) as SessionMedia[];
+      if (sessionsRes.error) throw sessionsRes.error;
+
+      const rawSessions = (sessionsRes.data ?? []) as TrainingSession[];
+      const rawCoordinators = (coordinatorsRes.data ?? []) as SessionCoordinator[];
+      const rawMedia = (mediaRes.data ?? []) as SessionMedia[];
 
       return rawSessions.map((s) => ({
         ...s,
@@ -68,41 +72,55 @@ export function useSaveSessionMutation() {
       coordinatorIds,
       stagedFiles,
     }: SaveSessionPayload) => {
+      const supabase = getSupabaseBrowserClient();
       let activeSessionId = id;
 
       if (activeSessionId) {
-        await api.entities.TrainingSession.update(activeSessionId, {
-          start_time,
-          end_time,
-          focus,
-          coach,
-          notes,
-        });
+        const { error } = await supabase
+          .from("training_sessions")
+          .update({
+            start_time,
+            end_time,
+            focus,
+            coach,
+            notes,
+          })
+          .eq("id", activeSessionId);
+        if (error) throw error;
       } else {
-        const created = await api.entities.TrainingSession.create({
-          start_time,
-          end_time,
-          focus,
-          coach,
-          notes,
-        });
+        const { data: created, error } = await supabase
+          .from("training_sessions")
+          .insert({
+            start_time,
+            end_time,
+            focus,
+            coach,
+            notes,
+          })
+          .select()
+          .single();
+        if (error) throw error;
         activeSessionId = created.id;
       }
 
       // Synchronize coordinators
       if (activeSessionId) {
-        const existing = await api.entities.SessionCoordinator.filter({
-          session_id: activeSessionId,
-        });
-        for (const item of existing.items) {
-          await api.entities.SessionCoordinator.delete(item.id);
-        }
-        for (const memberId of coordinatorIds) {
-          await api.entities.SessionCoordinator.create({
-            session_id: activeSessionId,
+        const { error: delErr } = await supabase
+          .from("session_coordinators")
+          .delete()
+          .eq("session_id", activeSessionId);
+        if (delErr) throw delErr;
+
+        if (coordinatorIds.length > 0) {
+          const toInsert = coordinatorIds.map((memberId) => ({
+            session_id: activeSessionId!,
             member_id: memberId,
             role: "Coordinator",
-          });
+          }));
+          const { error: insErr } = await supabase
+            .from("session_coordinators")
+            .insert(toInsert);
+          if (insErr) throw insErr;
         }
 
         if (stagedFiles && stagedFiles.length > 0) {
@@ -125,7 +143,12 @@ export function useDeleteSessionMutation() {
 
   return useMutation({
     mutationFn: async (sessionId: string) => {
-      await api.entities.TrainingSession.delete(sessionId);
+      const supabase = getSupabaseBrowserClient();
+      const { error } = await supabase
+        .from("training_sessions")
+        .delete()
+        .eq("id", sessionId);
+      if (error) throw error;
       return sessionId;
     },
     onSuccess: (sessionId) => {
@@ -142,24 +165,37 @@ export function useSessionDetailQuery(sessionId: string | undefined | null) {
     queryKey: ["session", sessionId],
     queryFn: async () => {
       if (!sessionId) return null;
+      const supabase = getSupabaseBrowserClient();
 
-      const [session, coordinatorsRes, mediaRes] = await Promise.all([
-        api.entities.TrainingSession.get(sessionId),
-        api.entities.SessionCoordinator.filter({ session_id: sessionId }),
-        api.entities.SessionMedia.filter(
-          { session_id: sessionId },
-          { sort: "-created_at", limit: 100 },
-        ),
+      const [sessionRes, coordinatorsRes, mediaRes] = await Promise.all([
+        supabase
+          .from("sessions_with_turnout")
+          .select("*")
+          .eq("id", sessionId)
+          .maybeSingle(),
+        supabase
+          .from("session_coordinators")
+          .select("*")
+          .eq("session_id", sessionId),
+        supabase
+          .from("session_media")
+          .select("*")
+          .eq("session_id", sessionId)
+          .order("created_at", { ascending: false })
+          .limit(100),
       ]);
 
-      const rawSession = session as TrainingSession;
+      if (sessionRes.error) throw sessionRes.error;
+      if (!sessionRes.data) return null;
+
+      const rawSession = sessionRes.data as TrainingSession;
       return {
         ...rawSession,
         session_date:
           rawSession.session_date ||
           (rawSession.start_time ? rawSession.start_time.split("T")[0] : ""),
-        coordinators: (coordinatorsRes.items ?? []) as SessionCoordinator[],
-        media: (mediaRes.items ?? []) as SessionMedia[],
+        coordinators: (coordinatorsRes.data ?? []) as SessionCoordinator[],
+        media: (mediaRes.data ?? []) as SessionMedia[],
       } as TrainingSession;
     },
     enabled: Boolean(sessionId),
@@ -176,11 +212,16 @@ export function useSessionMediaQuery(sessionId: string | undefined | null) {
     queryKey: ["session_media", sessionId],
     queryFn: async () => {
       if (!sessionId) return [];
-      const res = await api.entities.SessionMedia.filter(
-        { session_id: sessionId },
-        { sort: "-created_at", limit: 200 },
-      );
-      return (res.items ?? []) as SessionMedia[];
+      const supabase = getSupabaseBrowserClient();
+      const { data, error } = await supabase
+        .from("session_media")
+        .select("*")
+        .eq("session_id", sessionId)
+        .order("created_at", { ascending: false })
+        .limit(200);
+
+      if (error) throw error;
+      return (data ?? []) as SessionMedia[];
     },
     enabled: Boolean(sessionId),
     staleTime: 1000 * 60, // 1 minute
@@ -245,11 +286,16 @@ export function useSessionAttendanceQuery(
     queryKey: ["attendance", sessionId],
     queryFn: async () => {
       if (!sessionId) return [];
-      const res = await api.entities.Attendance.filter(
-        { session_id: sessionId },
-        { sort: "-created_at", limit: 300 },
-      );
-      return (res.items ?? []) as AttendanceRecord[];
+      const supabase = getSupabaseBrowserClient();
+      const { data, error } = await supabase
+        .from("attendances")
+        .select("*")
+        .eq("session_id", sessionId)
+        .order("created_at", { ascending: false })
+        .limit(300);
+
+      if (error) throw error;
+      return (data ?? []) as AttendanceRecord[];
     },
     enabled: Boolean(sessionId),
     staleTime: 1000 * 30, // 30 seconds
@@ -262,17 +308,26 @@ export function useCheckInMutation(sessionId: string | undefined | null) {
   return useMutation({
     mutationFn: async ({
       memberId,
-      sessionDate,
+      note,
     }: {
       memberId: string;
+      note?: string;
       sessionDate?: string;
     }) => {
       if (!sessionId) throw new Error("No session ID provided for check-in");
-      return (await api.entities.Attendance.create({
-        session_id: sessionId,
-        member_id: memberId,
-        ...(sessionDate ? { session_date: sessionDate } : {}),
-      })) as AttendanceRecord;
+      const supabase = getSupabaseBrowserClient();
+      const { data, error } = await supabase
+        .from("attendances")
+        .insert({
+          session_id: sessionId,
+          member_id: memberId,
+          note: note || null,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data as AttendanceRecord;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["attendance", sessionId] });
@@ -288,7 +343,12 @@ export function useUndoCheckInMutation(sessionId: string | undefined | null) {
 
   return useMutation({
     mutationFn: async (attendanceRecordId: string) => {
-      await api.entities.Attendance.delete(attendanceRecordId);
+      const supabase = getSupabaseBrowserClient();
+      const { error } = await supabase
+        .from("attendances")
+        .delete()
+        .eq("id", attendanceRecordId);
+      if (error) throw error;
       return attendanceRecordId;
     },
     onSuccess: () => {

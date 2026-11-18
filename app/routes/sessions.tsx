@@ -11,7 +11,7 @@ import {
   Film,
   Play,
 } from "lucide-react";
-import { getPublicSessions } from "@/lib/api/public";
+import { getPublicSessions } from "@/lib/server/public";
 import { Image } from "@/components/ui/image";
 import Aura from "@/components/visual/Aura";
 import RingField from "@/components/visual/RingField";

@@ -1,3 +1,5 @@
+export type UserRole = "admin" | "staff" | "member";
+
 export type Rank =
   | "White"
   | "Yellow"

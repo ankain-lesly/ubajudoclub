@@ -29,6 +29,7 @@ export default [
       route("sessions/:id", "routes/dashboard/session.$id.tsx"),
       route("athletes", "routes/dashboard/athletes.tsx"),
       route("requests", "routes/dashboard/requests.tsx"),
+      route("settings", "routes/dashboard/settings.tsx"),
     ]),
   ]),
 

@@ -8,12 +8,13 @@ import {
   type ReactNode,
 } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase/client";
+import type { UserRole } from "@/lib/types";
 
 export interface AuthUser {
   id: string;
   email: string;
   name?: string;
-  role?: "coach" | "member" | "admin";
+  role?: UserRole;
   linkedMemberId?: string | null;
 }
 
@@ -54,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const rawRole = (profile?.role || "member").toLowerCase();
       const role: AuthUser["role"] =
-        rawRole === "coach" || rawRole === "admin" ? (rawRole as AuthUser["role"]) : "member";
+        rawRole === "admin" ? "admin" : rawRole === "staff" || rawRole === "coach" ? "staff" : "member";
 
       return {
         id: userId,

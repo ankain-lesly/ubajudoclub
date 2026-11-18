@@ -2,14 +2,9 @@ import { useMemo, useState } from "react";
 import {
   Search,
   Users,
-  Award,
   GraduationCap,
-  Calendar,
-  Sparkles,
-  Shield,
-  Filter,
 } from "lucide-react";
-import { getPublicMembers } from "@/lib/api/public";
+import { getPublicMembers } from "@/lib/server/public";
 import { BELTS, beltFor } from "@/lib/data/club";
 import type { Rank } from "@/lib/types";
 import Aura from "@/components/visual/Aura";

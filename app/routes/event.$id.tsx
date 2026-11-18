@@ -2,7 +2,7 @@ import { Link, data } from "react-router";
 import { ArrowLeft, CalendarDays, Clock, MapPin, Ticket } from "lucide-react";
 import type { Route } from "./+types/event.$id";
 import { Image } from "@/components/ui/image";
-import { getEvent, listEvents } from "@/lib/api/public";
+import { getEvent, listEvents } from "@/lib/server/public";
 import { dayOf, isUpcoming, kindStyle, longDate, monthOf } from "@/lib/data/events";
 import EventCard from "@/components/events/EventCard";
 import Aura from "@/components/visual/Aura";
