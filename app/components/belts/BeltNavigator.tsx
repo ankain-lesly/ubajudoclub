@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import type { BeltSlug } from "@/lib/types/syllabus";
-import { getSyllabusBySlug } from "@/lib/data/syllabus";
+import { getBeltView } from "@/lib/data/syllabus";
 import Reveal from "@/components/visual/Reveal";
 
 interface BeltNavigatorProps {
@@ -13,8 +13,8 @@ export default function BeltNavigator({
   prevSlug,
   nextSlug,
 }: BeltNavigatorProps) {
-  const prevBelt = prevSlug ? getSyllabusBySlug(prevSlug) : null;
-  const nextBelt = nextSlug ? getSyllabusBySlug(nextSlug) : null;
+  const prevBelt = prevSlug ? getBeltView(prevSlug) : null;
+  const nextBelt = nextSlug ? getBeltView(nextSlug) : null;
 
   if (!prevBelt && !nextBelt) return null;
 
@@ -40,7 +40,7 @@ export default function BeltNavigator({
                       style={{ backgroundColor: prevBelt.color }}
                     />
                     <span className="font-display text-base font-semibold text-foreground">
-                      {prevBelt.rank}
+                      {prevBelt.rankName}
                     </span>
                   </div>
                 </div>
@@ -59,7 +59,7 @@ export default function BeltNavigator({
                   </p>
                   <div className="mt-1 flex items-center gap-2 sm:justify-end">
                     <span className="font-display text-base font-semibold text-foreground">
-                      {nextBelt.rank}
+                      {nextBelt.rankName}
                     </span>
                     <span
                       className="h-2 w-5 rounded-full"

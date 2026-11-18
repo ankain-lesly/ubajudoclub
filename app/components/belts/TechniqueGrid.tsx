@@ -1,155 +1,330 @@
 import { useState } from "react";
-import { ChevronDown, AlertTriangle, CheckCircle2 } from "lucide-react";
-import type { TechniqueItem } from "@/lib/types/syllabus";
-import SpotlightCard from "@/components/visual/SpotlightCard";
+import { ChevronDown, History } from "lucide-react";
+import type { Technique, ResolvedBeltView } from "@/lib/types/syllabus";
+import TechniqueCard from "./TechniqueCard";
+import TechniqueSheet from "./TechniqueSheet";
 import Reveal from "@/components/visual/Reveal";
 import { cn } from "@/lib/utils";
 
 interface TechniqueGridProps {
-  techniques: TechniqueItem[];
-  title?: string;
-  eyebrow?: string;
+  throws: Technique[];
+  groundwork: Technique[];
+  ukemi: Technique[];
+  combinations?: ResolvedBeltView["combinations"];
+  counters?: ResolvedBeltView["counters"];
+  cumulativeReviewThrows: ResolvedBeltView["cumulativeReviewThrows"];
+  cumulativeReviewGroundwork: ResolvedBeltView["cumulativeReviewGroundwork"];
 }
 
-export default function TechniqueGrid({
-  techniques,
-  title,
-  eyebrow,
-}: TechniqueGridProps) {
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+type FilterType = "all" | "throws" | "groundwork" | "combinations";
 
-  const toggleExpand = (id: string) => {
-    setExpandedId((prev) => (prev === id ? null : id));
+export default function TechniqueGrid({
+  throws,
+  groundwork,
+  ukemi,
+  combinations,
+  counters,
+  cumulativeReviewThrows,
+  cumulativeReviewGroundwork,
+}: TechniqueGridProps) {
+  const [activeFilter, setActiveFilter] = useState<FilterType>("all");
+  const [selectedTechnique, setSelectedTechnique] = useState<Technique | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
+
+  const handleSelectTechnique = (t: Technique) => {
+    setSelectedTechnique(t);
+    setSheetOpen(true);
   };
 
+  const showThrows = activeFilter === "all" || activeFilter === "throws";
+  const showGroundwork = activeFilter === "all" || activeFilter === "groundwork";
+  const showCombos =
+    activeFilter === "all" || activeFilter === "combinations";
+
+  const totalNewCount = throws.length + groundwork.length;
+  const totalReviewCount =
+    cumulativeReviewThrows.length + cumulativeReviewGroundwork.length;
+
   return (
-    <div className="space-y-6">
-      {(title || eyebrow) && (
+    <div className="space-y-12">
+      {/* Category Sub-Filters */}
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-ink/10 pb-4">
+        <div>
+          <h3 className="font-display text-xl font-semibold tracking-[-0.015em]">
+            New Techniques
+          </h3>
+          <p className="text-[13px] text-muted-foreground mt-0.5">
+            Techniques introduced at this grade for technical assessment
+          </p>
+        </div>
+
+        <div className="flex items-center gap-1 rounded-full border border-ink/12 bg-secondary/30 p-1 text-[11.5px]">
+          <button
+            type="button"
+            onClick={() => setActiveFilter("all")}
+            className={cn(
+              "rounded-full px-3 py-1 font-medium transition-all",
+              activeFilter === "all"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            )}>
+            All ({totalNewCount})
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveFilter("throws")}
+            className={cn(
+              "rounded-full px-3 py-1 font-medium transition-all",
+              activeFilter === "throws"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            )}>
+            Throws ({throws.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveFilter("groundwork")}
+            className={cn(
+              "rounded-full px-3 py-1 font-medium transition-all",
+              activeFilter === "groundwork"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:text-foreground"
+            )}>
+            Groundwork ({groundwork.length})
+          </button>
+          {((combinations && combinations.length > 0) ||
+            (counters && counters.length > 0)) && (
+            <button
+              type="button"
+              onClick={() => setActiveFilter("combinations")}
+              className={cn(
+                "rounded-full px-3 py-1 font-medium transition-all",
+                activeFilter === "combinations"
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground"
+              )}>
+              Combos & Counters
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Ukemi Section */}
+      {ukemi.length > 0 && activeFilter === "all" && (
         <Reveal>
-          <div>
-            {eyebrow && (
-              <p className="font-mono text-[9px] uppercase tracking-[0.24em] text-primary">
-                {eyebrow}
+          <div className="space-y-3">
+            <div>
+              <h4 className="font-display text-lg font-semibold tracking-[-0.01em]">
+                Ukemi-waza
+              </h4>
+              <p className="text-[12.5px] text-muted-foreground">
+                Breakfall Foundations & Mat Safety
               </p>
-            )}
-            {title && (
-              <h3 className="mt-1 font-display text-2xl font-semibold tracking-[-0.02em]">
-                {title}
-              </h3>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {ukemi.map((u) => (
+                <TechniqueCard
+                  key={u.id}
+                  technique={u}
+                  onSelect={handleSelectTechnique}
+                />
+              ))}
+            </div>
+          </div>
+        </Reveal>
+      )}
+
+      {/* Tachi-waza Section */}
+      {showThrows && throws.length > 0 && (
+        <Reveal>
+          <div className="space-y-3">
+            <div>
+              <h4 className="font-display text-lg font-semibold tracking-[-0.01em]">
+                Tachi-waza
+              </h4>
+              <p className="text-[12.5px] text-muted-foreground">
+                Standing Techniques & Throws
+              </p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {throws.map((t) => (
+                <TechniqueCard
+                  key={t.id}
+                  technique={t}
+                  onSelect={handleSelectTechnique}
+                />
+              ))}
+            </div>
+          </div>
+        </Reveal>
+      )}
+
+      {/* Combinations & Counters */}
+      {showCombos &&
+        ((combinations && combinations.length > 0) ||
+          (counters && counters.length > 0)) && (
+          <Reveal>
+            <div className="space-y-3">
+              <div>
+                <h4 className="font-display text-lg font-semibold tracking-[-0.01em]">
+                  Renraku-waza & Kaeshi-waza
+                </h4>
+                <p className="text-[12.5px] text-muted-foreground">
+                  Combination Chains & Counter Reversals
+                </p>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                {combinations?.map((c) => (
+                  <div
+                    key={c.id}
+                    className="rounded-xl border border-ink/10 bg-card p-4">
+                    <span className="rounded-full bg-primary/10 px-2 py-0.5 font-mono text-[9px] text-primary font-medium">
+                      Combination
+                    </span>
+                    <h5 className="mt-2 font-display text-base font-semibold">
+                      {c.fromTechnique.name} → {c.toTechnique.name}
+                    </h5>
+                    <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted-foreground">
+                      {c.cue}
+                    </p>
+                  </div>
+                ))}
+
+                {counters?.map((k) => (
+                  <div
+                    key={k.id}
+                    className="rounded-xl border border-ink/10 bg-card p-4">
+                    <span className="rounded-full bg-secondary px-2 py-0.5 font-mono text-[9px] text-foreground font-medium">
+                      Counter
+                    </span>
+                    <h5 className="mt-2 font-display text-base font-semibold">
+                      Against {k.againstTechnique.name} → {k.counterTechnique.name}
+                    </h5>
+                    <p className="mt-1.5 text-[12.5px] leading-relaxed text-muted-foreground">
+                      {k.cue}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Reveal>
+        )}
+
+      {/* Ne-waza Section */}
+      {showGroundwork && groundwork.length > 0 && (
+        <Reveal>
+          <div className="space-y-3">
+            <div>
+              <h4 className="font-display text-lg font-semibold tracking-[-0.01em]">
+                Ne-waza
+              </h4>
+              <p className="text-[12.5px] text-muted-foreground">
+                Groundwork, Pins & Submissions
+              </p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {groundwork.map((g) => (
+                <TechniqueCard
+                  key={g.id}
+                  technique={g}
+                  onSelect={handleSelectTechnique}
+                />
+              ))}
+            </div>
+          </div>
+        </Reveal>
+      )}
+
+      {/* Cumulative Review Accordion */}
+      {totalReviewCount > 0 && (
+        <Reveal>
+          <div className="rounded-xl border border-ink/10 bg-secondary/20 p-4 sm:p-5">
+            <button
+              type="button"
+              onClick={() => setReviewOpen((prev) => !prev)}
+              className="flex w-full items-center justify-between text-left">
+              <div className="flex items-center gap-2.5">
+                <History className="h-4 w-4 text-primary" />
+                <div>
+                  <h4 className="font-display text-base font-semibold">
+                    Cumulative Review from Earlier Grades ({totalReviewCount} techniques)
+                  </h4>
+                  <p className="text-[12px] text-muted-foreground">
+                    Exams test mastery across all prior ranks. Click to review previous curriculum.
+                  </p>
+                </div>
+              </div>
+              <ChevronDown
+                className={cn(
+                  "h-4 w-4 text-muted-foreground transition-transform duration-200",
+                  reviewOpen && "rotate-180"
+                )}
+              />
+            </button>
+
+            {reviewOpen && (
+              <div className="mt-5 space-y-5 border-t border-ink/10 pt-4 animate-rise">
+                <div>
+                  <p className="text-[12px] font-semibold text-foreground">
+                    Previously Studied Throws:
+                  </p>
+                  <div className="mt-2.5 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                    {cumulativeReviewThrows.map((item) => (
+                      <div
+                        key={item.id}
+                        className="rounded-lg bg-card p-3 border border-ink/10 text-[12px]">
+                        <span className="font-mono text-[8.5px] text-primary font-medium">
+                          {item.beltRank} Belt
+                        </span>
+                        <p className="font-semibold text-foreground mt-0.5">
+                          {item.name}
+                        </p>
+                        <p className="text-[11.5px] text-muted-foreground">
+                          {item.translation}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {cumulativeReviewGroundwork.length > 0 && (
+                  <div>
+                    <p className="text-[12px] font-semibold text-foreground">
+                      Previously Studied Groundwork:
+                    </p>
+                    <div className="mt-2.5 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                      {cumulativeReviewGroundwork.map((item) => (
+                        <div
+                          key={item.id}
+                          className="rounded-lg bg-card p-3 border border-ink/10 text-[12px]">
+                          <span className="font-mono text-[8.5px] text-primary font-medium">
+                            {item.beltRank} Belt
+                          </span>
+                          <p className="font-semibold text-foreground mt-0.5">
+                            {item.name}
+                          </p>
+                          <p className="text-[11.5px] text-muted-foreground">
+                            {item.translation}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </Reveal>
       )}
 
-      <div className="grid gap-5 md:grid-cols-2">
-        {techniques.map((tech, i) => {
-          const isExpanded = expandedId === tech.id;
-          return (
-            <Reveal key={tech.id} delay={i * 0.04}>
-              <SpotlightCard className="flex h-full flex-col justify-between rounded-xl border border-ink/12 bg-card p-6 transition-all duration-300 hover:border-ink/25">
-                <div>
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      {tech.subgroup && (
-                        <span className="rounded-full bg-secondary/80 px-2.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em] text-secondary-foreground">
-                          {tech.subgroup}
-                        </span>
-                      )}
-                      {tech.gokyoGroup && (
-                        <span className="rounded-full border border-primary/30 px-2 py-0.5 font-mono text-[8.5px] uppercase tracking-[0.12em] text-primary">
-                          Gokyo Grp {tech.gokyoGroup}
-                        </span>
-                      )}
-                    </div>
-                    {tech.japaneseKanji && (
-                      <span className="font-mono text-sm tracking-widest text-muted-foreground/60">
-                        {tech.japaneseKanji}
-                      </span>
-                    )}
-                  </div>
-
-                  <h4 className="mt-4 font-display text-xl font-semibold tracking-[-0.015em]">
-                    {tech.name}
-                  </h4>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-primary">
-                    {tech.translation}
-                  </p>
-
-                  <p className="mt-3 text-[13.5px] leading-relaxed text-muted-foreground">
-                    {tech.description}
-                  </p>
-
-                  {/* Key coaching execution cues */}
-                  <div className="mt-5 space-y-2 border-t border-ink/10 pt-4">
-                    <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-foreground/80 font-semibold">
-                      Key Execution Points:
-                    </p>
-                    <ul className="space-y-1.5">
-                      {tech.keyPoints.map((point, idx) => (
-                        <li
-                          key={idx}
-                          className="flex items-start gap-2 text-[12.5px] leading-relaxed text-muted-foreground">
-                          <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary/80" />
-                          <span>{point}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Expandable Common Mistakes & Safety Warnings */}
-                  {isExpanded && (
-                    <div className="mt-4 space-y-3 rounded-lg bg-secondary/30 p-3.5 text-[12px] animate-rise">
-                      {tech.commonMistakes && tech.commonMistakes.length > 0 && (
-                        <div>
-                          <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-foreground font-semibold">
-                            Common Traps:
-                          </p>
-                          <ul className="mt-1 list-inside list-disc space-y-1 text-muted-foreground">
-                            {tech.commonMistakes.map((m, idx) => (
-                              <li key={idx}>{m}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-
-                      {tech.safetyWarnings && tech.safetyWarnings.length > 0 && (
-                        <div className="border-t border-ink/10 pt-2 text-destructive">
-                          <div className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.16em] font-semibold">
-                            <AlertTriangle className="h-3 w-3 shrink-0" />
-                            Safety Alert:
-                          </div>
-                          <ul className="mt-1 list-inside list-disc space-y-1">
-                            {tech.safetyWarnings.map((w, idx) => (
-                              <li key={idx}>{w}</li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {(tech.commonMistakes || tech.safetyWarnings) && (
-                  <button
-                    type="button"
-                    onClick={() => toggleExpand(tech.id)}
-                    className="mt-5 inline-flex items-center justify-between border-t border-ink/10 pt-3 text-left font-mono text-[9.5px] uppercase tracking-[0.16em] text-primary transition-colors hover:text-foreground">
-                    <span>
-                      {isExpanded ? "Hide coaching traps" : "View common traps & safety"}
-                    </span>
-                    <ChevronDown
-                      className={cn(
-                        "h-3.5 w-3.5 transition-transform duration-200",
-                        isExpanded && "rotate-180"
-                      )}
-                    />
-                  </button>
-                )}
-              </SpotlightCard>
-            </Reveal>
-          );
-        })}
-      </div>
+      {/* Slide-out Sheet for Technique Details */}
+      <TechniqueSheet
+        technique={selectedTechnique}
+        open={sheetOpen}
+        onOpenChange={setSheetOpen}
+      />
     </div>
   );
 }

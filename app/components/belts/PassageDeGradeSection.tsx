@@ -1,247 +1,250 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   CheckCircle,
   Circle,
-  FileCheck2,
+  Clock,
   Flame,
-  HelpCircle,
-  ListOrdered,
-  Users,
+  ShieldCheck,
+  Target,
+  Sparkles,
 } from "lucide-react";
-import type { PassageDeGradeExam } from "@/lib/types/syllabus";
-import SpotlightCard from "@/components/visual/SpotlightCard";
+import type { ResolvedBeltView } from "@/lib/types/syllabus";
 import Reveal from "@/components/visual/Reveal";
 
 interface PassageDeGradeSectionProps {
-  exam: PassageDeGradeExam;
-  rankName: string;
+  view: ResolvedBeltView;
 }
 
 export default function PassageDeGradeSection({
-  exam,
-  rankName,
+  view,
 }: PassageDeGradeSectionProps) {
-  // Client-side self-readiness toggle checklist
-  const [checkedTasks, setCheckedTasks] = useState<Record<string, boolean>>({});
+  const { exam, rankName } = view;
 
-  const allTasks = exam.evaluationModules.flatMap((m) => m.tasks);
-  const totalTasks = allTasks.length;
-  const completedTasksCount =
-    Object.values(checkedTasks).filter(Boolean).length;
-  const progressPercentage =
-    totalTasks > 0 ? Math.round((completedTasksCount / totalTasks) * 100) : 0;
+  // SSR-safe client-side preparation checklist stored in localStorage
+  const storageKey = `uba:belt-readiness:${view.slug}:v2`;
+  const [checkedTasks, setCheckedTasks] = useState<Record<string, boolean>>({});
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    try {
+      const stored = localStorage.getItem(storageKey);
+      if (stored) {
+        setCheckedTasks(JSON.parse(stored));
+      }
+    } catch {
+      // ignore storage access errors
+    }
+  }, [storageKey]);
 
   const toggleTask = (taskId: string) => {
-    setCheckedTasks((prev) => ({
-      ...prev,
-      [taskId]: !prev[taskId],
-    }));
+    setCheckedTasks((prev) => {
+      const next = { ...prev, [taskId]: !prev[taskId] };
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(next));
+      } catch {
+        // ignore storage errors
+      }
+      return next;
+    });
   };
+
+  if (!exam) {
+    // For Black Belt / Yudansha
+    return (
+      <div className="rounded-2xl border border-ink/10 bg-secondary/30 p-8 text-center max-w-2xl mx-auto">
+        <Sparkles className="h-8 w-8 text-primary mx-auto" />
+        <h3 className="mt-3 font-display text-xl font-semibold">
+          Yudansha Degree (Shodan & Beyond)
+        </h3>
+        <p className="mt-2 text-[13.5px] leading-relaxed text-muted-foreground">
+          Black belt promotions are governed by national and continental grading commissions (FECAJUDO / African Judo Union). Athletes prepare by compiling competitive points, technical kata mastery, and dedicated coaching hours.
+        </p>
+      </div>
+    );
+  }
+
+  const totalTasks = exam.technical.length;
+  const completedCount = mounted
+    ? Object.values(checkedTasks).filter(Boolean).length
+    : 0;
+  const progressPercent =
+    totalTasks > 0 ? Math.round((completedCount / totalTasks) * 100) : 0;
 
   return (
     <div className="space-y-12">
-      {/* Overview & Prerequisites Card */}
+      {/* 3-Pillar Grade Transition Header */}
       <Reveal>
-        <div className="rounded-2xl border border-ink/12 bg-secondary/30 p-7 lg:p-9">
+        <div className="rounded-2xl border border-ink/10 bg-secondary/30 p-6 sm:p-7">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
-              <p className="font-mono text-[9px] uppercase tracking-[0.24em] text-primary">
-                Official Examination Protocol
-              </p>
-              <h3 className="mt-2 font-display text-2xl font-semibold tracking-[-0.02em]">
-                Passage de Grade — {rankName}
+              <h3 className="font-display text-xl font-semibold tracking-[-0.015em]">
+                Passage de Grade — {rankName} → {exam.nextRankTitle}
               </h3>
+              <p className="text-[13px] text-muted-foreground mt-0.5">
+                Promotion requirements and technical evaluation criteria
+              </p>
             </div>
-            <div className="flex items-center gap-2 rounded-full border border-ink/15 bg-card px-4 py-2 font-mono text-[11px]">
-              <span className="text-muted-foreground">Readiness:</span>
+
+            <div className="flex items-center gap-2 rounded-full border border-ink/12 bg-card px-3.5 py-1 text-[12px]">
+              <span className="text-muted-foreground">Self-readiness:</span>
               <span className="font-semibold text-primary">
-                {completedTasksCount} / {totalTasks} tasks ({progressPercentage}%)
+                {completedCount} / {totalTasks} ({progressPercent}%)
               </span>
             </div>
           </div>
 
-          <p className="mt-4 text-[14px] leading-relaxed text-muted-foreground">
-            Grade promotions at UBa Judo Club adhere to FECAJUDO and Kodokan
-            standards. Attendance unlocks eligibility; the technical examination
-            board validates proficiency, composure, and mat safety.
+          <p className="mt-3 text-[13.5px] leading-relaxed text-muted-foreground">
+            Attendance unlocks testing eligibility at UBa Judo Club. The technical examination board then evaluates execution quality, balance control, and partner safety.
           </p>
 
-          <div className="mt-7 grid gap-6 border-t border-ink/10 pt-6 sm:grid-cols-2 lg:grid-cols-3">
-            <div>
-              <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
-                Minimum Sessions
-              </p>
-              <p className="mt-1 font-display text-xl font-semibold">
-                {exam.minimumSessions} Training Sessions
-              </p>
-              <p className="mt-1 text-[12px] text-muted-foreground">
-                Verified attendance logged at the dojo entrance
-              </p>
+          {/* 3 Pillars Overview */}
+          <div className="mt-6 grid gap-4 sm:grid-cols-3 border-t border-ink/10 pt-5">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+                <Target className="h-4 w-4" />
+              </div>
+              <div>
+                <span className="font-display text-lg font-semibold">
+                  {exam.targetSessions} Sessions
+                </span>
+                <p className="text-[11.5px] text-muted-foreground">
+                  Pillar 1: Attendance Floor
+                </p>
+              </div>
             </div>
 
-            <div>
-              <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
-                Time in Grade
-              </p>
-              <p className="mt-1 font-display text-xl font-semibold">
-                {exam.minimumTimeMonths} Months Floor
-              </p>
-              <p className="mt-1 text-[12px] text-muted-foreground">
-                Maturing muscle memory & technique absorption
-              </p>
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+                <Clock className="h-4 w-4" />
+              </div>
+              <div>
+                <span className="font-display text-lg font-semibold">
+                  {exam.minMonths} Months
+                </span>
+                <p className="text-[11.5px] text-muted-foreground">
+                  Pillar 2: Maturation Time
+                </p>
+              </div>
             </div>
 
-            <div>
-              <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
-                Coaching Sign-Off
-              </p>
-              <p className="mt-1 font-display text-xl font-semibold text-primary">
-                Mandatory
-              </p>
-              <p className="mt-1 text-[12px] text-muted-foreground">
-                Signed by Head Coach / Technical Board
-              </p>
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+                <ShieldCheck className="h-4 w-4" />
+              </div>
+              <div>
+                <span className="font-display text-lg font-semibold">
+                  Technical Board
+                </span>
+                <p className="text-[11.5px] text-muted-foreground">
+                  Pillar 3: Coach Sign-off
+                </p>
+              </div>
             </div>
-          </div>
-
-          {/* Prerequisites */}
-          <div className="mt-6 rounded-lg bg-card/60 p-4">
-            <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-foreground font-semibold">
-              Formal Prerequisites:
-            </p>
-            <ul className="mt-2 space-y-1 text-[13px] text-muted-foreground">
-              {exam.prerequisites.map((p, i) => (
-                <li key={i} className="flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
-                  <span>{p}</span>
-                </li>
-              ))}
-            </ul>
           </div>
         </div>
       </Reveal>
 
-      {/* Evaluation Modules & Self-Checklist */}
-      <div>
-        <Reveal>
+      {/* Interactive Preparation Checklist */}
+      <Reveal>
+        <div className="space-y-3">
           <div className="flex items-end justify-between">
             <div>
-              <p className="font-mono text-[9px] uppercase tracking-[0.24em] text-primary">
-                Technical Syllabus Checklist
-              </p>
-              <h4 className="mt-1 font-display text-2xl font-semibold tracking-[-0.02em]">
-                Examination Rubrics & Self-Assessment
+              <h4 className="font-display text-lg font-semibold tracking-[-0.01em]">
+                Examination Rubric & Preparation
               </h4>
+              <p className="text-[12.5px] text-muted-foreground">
+                Technical requirements assessed during grading day
+              </p>
             </div>
-            <p className="hidden font-mono text-[10px] text-muted-foreground sm:block">
-              Interactive preparation tool
+            <p className="hidden text-[11.5px] text-muted-foreground sm:block">
+              Click items as you master them on the tatami
             </p>
           </div>
-        </Reveal>
 
-        <div className="mt-6 grid gap-6 md:grid-cols-2">
-          {exam.evaluationModules.map((module, mIdx) => (
-            <Reveal key={module.title} delay={mIdx * 0.05}>
-              <SpotlightCard className="h-full rounded-xl border border-ink/12 bg-card p-6">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <ListOrdered className="h-4 w-4 text-primary" />
-                    <span className="font-mono text-[9.5px] uppercase tracking-[0.18em] text-primary">
-                      Module 0{mIdx + 1}
-                    </span>
-                  </div>
-                  {module.weightPercentage && (
-                    <span className="font-mono text-[9px] text-muted-foreground">
-                      Weight: {module.weightPercentage}%
-                    </span>
+          <div className="grid gap-2.5 sm:grid-cols-2">
+            {exam.technical.map((task, idx) => {
+              const isChecked = Boolean(checkedTasks[task.id]);
+              return (
+                <button
+                  key={task.id}
+                  type="button"
+                  onClick={() => toggleTask(task.id)}
+                  className={`flex items-start gap-3 rounded-xl border p-3.5 text-left transition-all ${
+                    isChecked
+                      ? "border-primary/40 bg-primary/5"
+                      : "border-ink/10 bg-card hover:border-ink/25"
+                  }`}>
+                  {isChecked ? (
+                    <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  ) : (
+                    <Circle className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground/40" />
                   )}
-                </div>
-
-                <h5 className="mt-3 font-display text-lg font-semibold tracking-[-0.01em]">
-                  {module.title}
-                </h5>
-                <p className="mt-1.5 text-[13px] leading-relaxed text-muted-foreground">
-                  {module.description}
-                </p>
-
-                <div className="mt-5 space-y-2.5 border-t border-ink/10 pt-4">
-                  {module.tasks.map((task, tIdx) => {
-                    const taskId = `${mIdx}-${tIdx}`;
-                    const isChecked = Boolean(checkedTasks[taskId]);
-                    return (
-                      <button
-                        key={taskId}
-                        type="button"
-                        onClick={() => toggleTask(taskId)}
-                        className="flex w-full items-start gap-3 rounded-lg p-2 text-left transition-colors hover:bg-secondary/40">
-                        {isChecked ? (
-                          <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                        ) : (
-                          <Circle className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground/50" />
-                        )}
-                        <span
-                          className={`text-[12.5px] leading-snug ${
-                            isChecked
-                              ? "text-foreground line-through opacity-70"
-                              : "text-foreground/90"
-                          }`}>
-                          {task}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </SpotlightCard>
-            </Reveal>
-          ))}
+                  <div>
+                    <span className="font-mono text-[9px] text-primary font-medium">
+                      Requirement 0{idx + 1}
+                    </span>
+                    <p
+                      className={`text-[12.5px] leading-snug mt-0.5 ${
+                        isChecked
+                          ? "line-through text-muted-foreground"
+                          : "text-foreground font-medium"
+                      }`}>
+                      {task.label}
+                    </p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      </Reveal>
 
-      {/* Randori / Sparring Requirement Card */}
+      {/* Combat & Randori Evaluation Card */}
       <Reveal>
-        <div className="rounded-xl border border-ink/12 bg-band p-6 text-band-foreground lg:p-8">
+        <div className="rounded-xl border border-ink/10 bg-band p-5 sm:p-6 text-band-foreground">
           <div className="flex items-center gap-2 text-primary">
-            <Flame className="h-5 w-5" />
-            <span className="font-mono text-[9.5px] uppercase tracking-[0.24em]">
-              Combat & Randori Examination
+            <Flame className="h-4 w-4" />
+            <span className="text-[12px] font-medium tracking-wide">
+              Combat Evaluation & Fighting Spirit
             </span>
           </div>
 
-          <h4 className="mt-3 font-display text-xl font-semibold tracking-[-0.015em]">
-            Fighting Spirit & Composure Assessment
+          <h4 className="mt-2 font-display text-lg font-semibold">
+            Randori Duration & Board Assessment
           </h4>
 
-          <div className="mt-6 grid gap-6 sm:grid-cols-3">
-            <div className="rounded-lg bg-white/5 p-4">
-              <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-band-foreground/60">
-                Tachi-waza Randori
+          <div className="mt-5 grid gap-4 sm:grid-cols-3">
+            <div className="rounded-lg bg-white/5 p-3.5">
+              <p className="text-[11px] text-band-foreground/60">
+                Tachi-waza (Standing)
               </p>
-              <p className="mt-1 font-display text-2xl font-semibold">
-                {exam.randoriRequirement.tachiWazaMinutes} Minutes
+              <p className="mt-1 font-display text-xl font-semibold">
+                {exam.randori.standingMin} Minutes
               </p>
-              <p className="mt-1 text-[11.5px] text-band-foreground/75">
-                Standing free sparring with shifting partners
-              </p>
-            </div>
-
-            <div className="rounded-lg bg-white/5 p-4">
-              <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-band-foreground/60">
-                Ne-waza Randori
-              </p>
-              <p className="mt-1 font-display text-2xl font-semibold">
-                {exam.randoriRequirement.neWazaMinutes} Minutes
-              </p>
-              <p className="mt-1 text-[11.5px] text-band-foreground/75">
-                Groundwork sparring starting from knees
+              <p className="mt-0.5 text-[11px] text-band-foreground/75">
+                Standing free sparring with partner rotation
               </p>
             </div>
 
-            <div className="rounded-lg bg-white/5 p-4">
-              <p className="font-mono text-[9px] uppercase tracking-[0.16em] text-band-foreground/60">
+            <div className="rounded-lg bg-white/5 p-3.5">
+              <p className="text-[11px] text-band-foreground/60">
+                Ne-waza (Groundwork)
+              </p>
+              <p className="mt-1 font-display text-xl font-semibold">
+                {exam.randori.groundMin} Minutes
+              </p>
+              <p className="mt-0.5 text-[11px] text-band-foreground/75">
+                Groundwork sparring initiated from knees
+              </p>
+            </div>
+
+            <div className="rounded-lg bg-white/5 p-3.5">
+              <p className="text-[11px] text-band-foreground/60">
                 Coaching Evaluation Focus
               </p>
-              <p className="mt-1 text-[12.5px] leading-relaxed text-band-foreground/85">
-                {exam.randoriRequirement.focus}
+              <p className="mt-1 text-[11.5px] leading-relaxed text-band-foreground/85">
+                {exam.randori.focus}
               </p>
             </div>
           </div>

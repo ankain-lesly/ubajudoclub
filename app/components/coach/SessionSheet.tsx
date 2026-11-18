@@ -134,10 +134,10 @@ export function SessionSheet({
     <Sheet open={open} onOpenChange={(isOpen) => !isOpen && onClose()}>
       <SheetContent
         side="right"
-        className="w-full sm:max-w-md bg-card border-l border-ink/12 overflow-y-auto"
+        className="w-full sm:max-w-md bg-card border-l border-ink/12 overflow-y-auto px-5"
       >
         <form onSubmit={handleSubmit} className="flex flex-col h-full">
-          <SheetHeader className="border-b border-ink/10 pb-5">
+          <SheetHeader className="border-b border-ink/10 pb-5 px-0">
             <SheetTitle className="font-display text-xl tracking-[-0.02em]">
               {isEditing ? "Edit Training Session" : "Schedule Training Session"}
             </SheetTitle>

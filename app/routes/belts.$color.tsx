@@ -1,8 +1,7 @@
-import { useState } from "react";
-import { Link, data } from "react-router";
-import { ArrowLeft, BookOpen, Layers, ShieldCheck, Sparkles, Swords } from "lucide-react";
+import { useSearchParams, Link, data } from "react-router";
+import { ArrowLeft, Layers, ShieldCheck } from "lucide-react";
 import type { Route } from "./+types/belts.$color";
-import { getSyllabusBySlug, isValidBeltSlug } from "@/lib/data/syllabus";
+import { getBeltView, isValidBeltSlug } from "@/lib/data/syllabus";
 import SyllabusHero from "@/components/belts/SyllabusHero";
 import TechniqueGrid from "@/components/belts/TechniqueGrid";
 import PassageDeGradeSection from "@/components/belts/PassageDeGradeSection";
@@ -10,7 +9,6 @@ import KataSection from "@/components/belts/KataSection";
 import GeneralAwarenessSection from "@/components/belts/GeneralAwarenessSection";
 import BeltNavigator from "@/components/belts/BeltNavigator";
 import SectionBackdrop from "@/components/visual/SectionBackdrop";
-import Reveal from "@/components/visual/Reveal";
 import { cn } from "@/lib/utils";
 
 export async function loader({ params }: Route.LoaderArgs) {
@@ -19,43 +17,43 @@ export async function loader({ params }: Route.LoaderArgs) {
     throw data(null, { status: 404 });
   }
 
-  const syllabus = getSyllabusBySlug(color);
-  if (!syllabus) {
+  const view = getBeltView(color);
+  if (!view) {
     throw data(null, { status: 404 });
   }
 
-  return { syllabus };
+  return { view };
 }
 
 export function meta({ loaderData }: Route.MetaArgs) {
   if (!loaderData) {
     return [{ title: "Belt Syllabus Not Found — UBa Judo Club" }];
   }
-  const { syllabus } = loaderData;
+  const { view } = loaderData;
   return [
-    { title: `${syllabus.rank} (${syllabus.kyuRank}) Syllabus & Passage de Grade — UBa Judo Club` },
+    { title: `${view.rankName} (${view.kyuTitle}) Syllabus & Passage de Grade — UBa Judo Club` },
     {
       name: "description",
-      content: `${syllabus.rank} syllabus for UBa Judo Club: Gokyo throwing techniques, Ne-waza groundwork, Kata, breakfalls, and Passage de Grade examination criteria.`,
+      content: `${view.rankName} syllabus for UBa Judo Club: Kodokan Gokyo throws, Ne-waza groundwork, Kata, breakfalls, and Passage de Grade examination criteria.`,
     },
-    { property: "og:title", content: `${syllabus.rank} Syllabus — UBa Judo Club` },
+    { property: "og:title", content: `${view.rankName} Syllabus — UBa Judo Club` },
     {
       property: "og:description",
-      content: `Full technical curriculum and exam requirements for ${syllabus.rank} at University of Bamenda Judo Club.`,
-    },
+      content: `Full technical curriculum and exam requirements for ${view.rankName} at University of Bamenda Judo Club.`,
+    },  
   ];
 }
 
 export function ErrorBoundary() {
   return (
     <section className="mx-auto max-w-6xl px-5 py-24 text-center lg:px-8 lg:py-32">
-      <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-primary">
+      <p className="font-mono text-[10px] text-primary">
         Grade Syllabus Not Found
       </p>
-      <h1 className="mt-5 font-display text-[clamp(2rem,4vw,3rem)] font-semibold tracking-[-0.03em]">
-        That belt program does not exist on the ladder.
+      <h1 className="mt-4 font-display text-[clamp(2rem,4vw,3rem)] font-semibold tracking-[-0.03em]">
+        That belt rank does not exist on the pathway.
       </h1>
-      <p className="mt-3 text-[14px] text-muted-foreground">
+      <p className="mt-2 text-[14px] text-muted-foreground">
         Choose from White, Yellow, Orange, Green, Blue, Brown, or Black.
       </p>
       <Link
@@ -68,182 +66,141 @@ export function ErrorBoundary() {
   );
 }
 
-type TabType =
-  | "all"
-  | "tachi-waza"
-  | "ne-waza"
-  | "kata"
-  | "ukemi-reiho"
-  | "theory"
-  | "exam";
+type ViewMode = "curriculum" | "passage-de-grade";
 
 export default function BeltSyllabusDetail({ loaderData }: Route.ComponentProps) {
-  const { syllabus } = loaderData;
-  const [activeTab, setActiveTab] = useState<TabType>("all");
+  const { view } = loaderData;
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const tabs: Array<{ id: TabType; label: string; icon: any; count?: number }> = [
-    { id: "all", label: "Full Syllabus", icon: Layers },
-    {
-      id: "tachi-waza",
-      label: "Throws (Tachi-waza)",
-      icon: Swords,
-      count: syllabus.tachiWaza.length,
-    },
-    {
-      id: "ne-waza",
-      label: "Groundwork (Ne-waza)",
-      icon: Swords,
-      count: syllabus.neWaza.length,
-    },
-    ...(syllabus.kata && syllabus.kata.length > 0
-      ? [{ id: "kata" as TabType, label: "Kata", icon: BookOpen, count: syllabus.kata.length }]
-      : []),
-    {
-      id: "ukemi-reiho",
-      label: "Ukemi & Reiho",
-      icon: Sparkles,
-      count: syllabus.ukemi.length,
-    },
-    {
-      id: "theory",
-      label: "Culture & Rules",
-      icon: BookOpen,
-      count: syllabus.generalAwareness.vocabulary.length,
-    },
-    {
-      id: "exam",
-      label: "Passage de Grade",
-      icon: ShieldCheck,
-      count: syllabus.examRequirements.evaluationModules.length,
-    },
-  ];
+  // Exactly two primary views: 'curriculum' (default) and 'passage-de-grade'
+  const currentView = searchParams.get("view");
+  const activeMode: ViewMode =
+    currentView === "passage-de-grade" ? "passage-de-grade" : "curriculum";
+
+  const setMode = (mode: ViewMode) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      if (mode === "curriculum") {
+        next.delete("view");
+      } else {
+        next.set("view", mode);
+      }
+      return next;
+    });
+  };
+
+  const isBlack = view.slug === "black";
+  const totalTechniques = view.resolvedThrows.length + view.resolvedGroundwork.length;
 
   return (
     <div>
-      <SyllabusHero syllabus={syllabus} />
+      <SyllabusHero view={view} />
 
-      {/* Sticky Tab Navigation Bar */}
-      <section className="sticky top-0 z-30 border-b border-ink/10 bg-background/95 backdrop-blur-md">
+      {/* Sticky Clean 2-Tab Navigation (Pinned cleanly at top-[72px] below fixed header) */}
+      <section className="sticky top-[72px] z-30 border-b border-ink/10 bg-background/90 backdrop-blur-xl">
         <div className="mx-auto max-w-6xl px-5 lg:px-8">
-          <div className="flex space-x-2 overflow-x-auto py-3 scrollbar-none">
-            {tabs.map((tab) => {
-              const Icon = tab.icon;
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id)}
+          <div className="flex items-center justify-between py-3">
+            <div className="flex items-center gap-1.5 rounded-full border border-ink/12 bg-secondary/35 p-1 text-[12px]">
+              {/* Tab 1: Curriculum */}
+              <button
+                type="button"
+                onClick={() => setMode("curriculum")}
+                className={cn(
+                  "flex items-center gap-2 rounded-full px-4 py-1.5 font-medium transition-all",
+                  activeMode === "curriculum"
+                    ? "bg-primary text-primary-foreground shadow-sm font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                )}>
+                <Layers className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Curriculum</span>
+                <span className="sm:hidden">Techniques</span>
+                <span
                   className={cn(
-                    "flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-[12px] font-medium transition-all",
-                    isActive
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "bg-secondary/40 text-muted-foreground hover:bg-secondary hover:text-foreground"
+                    "rounded-full px-1.5 py-0.5 text-[10px] font-mono",
+                    activeMode === "curriculum"
+                      ? "bg-primary-foreground/20 text-primary-foreground"
+                      : "bg-ink/8 text-muted-foreground"
                   )}>
-                  <Icon className="h-3.5 w-3.5" />
-                  <span>{tab.label}</span>
-                  {tab.count !== undefined && (
-                    <span
-                      className={cn(
-                        "rounded-full px-1.5 py-0.2 font-mono text-[9px] tabular-nums",
-                        isActive
-                          ? "bg-primary-foreground/20 text-primary-foreground"
-                          : "bg-ink/10 text-muted-foreground"
-                      )}>
-                      {tab.count}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+                  {totalTechniques}
+                </span>
+              </button>
+
+              {/* Tab 2: Passage de Grade */}
+              <button
+                type="button"
+                onClick={() => setMode("passage-de-grade")}
+                className={cn(
+                  "flex items-center gap-2 rounded-full px-4 py-1.5 font-medium transition-all",
+                  activeMode === "passage-de-grade"
+                    ? "bg-primary text-primary-foreground shadow-sm font-semibold"
+                    : "text-muted-foreground hover:text-foreground"
+                )}>
+                <ShieldCheck className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">
+                  {isBlack ? "Dan Degree" : `Passage de Grade → ${view.nextRankName}`}
+                </span>
+                <span className="sm:hidden">
+                  {isBlack ? "Dan Degree" : "Exam"}
+                </span>
+              </button>
+            </div>
+
+            <div className="hidden sm:flex items-center gap-2 text-[12px] text-muted-foreground font-medium">
+              <span
+                className="h-2 w-2 rounded-full"
+                style={{ backgroundColor: view.color }}
+              />
+              <span>{view.rankName}</span>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Main Content Sections */}
-      <section className="relative mx-auto max-w-6xl px-5 py-16 lg:px-8 lg:py-24">
-        <SectionBackdrop variant="weave" className="opacity-50" />
+      <section className="relative mx-auto max-w-6xl px-5 py-10 lg:px-8 lg:py-16">
+        <SectionBackdrop variant="weave" className="opacity-35" />
 
-        <div className="relative space-y-20">
-          {/* Tachi-waza (Standing Throws) */}
-          {(activeTab === "all" || activeTab === "tachi-waza") && (
-            <div id="tachi-waza">
+        <div className="relative space-y-16">
+          {/* Tab 1: Curriculum & Techniques + Kata + Theory Terms at the end */}
+          {activeMode === "curriculum" && (
+            <div className="space-y-16 animate-rise">
               <TechniqueGrid
-                techniques={syllabus.tachiWaza}
-                eyebrow="Tachi-waza Syllabus"
-                title="Standing Techniques & Throws"
+                throws={view.resolvedThrows}
+                groundwork={view.resolvedGroundwork}
+                ukemi={view.resolvedUkemi}
+                combinations={view.combinations}
+                counters={view.counters}
+                cumulativeReviewThrows={view.cumulativeReviewThrows}
+                cumulativeReviewGroundwork={view.cumulativeReviewGroundwork}
               />
-            </div>
-          )}
 
-          {/* Combinations & Counters (if applicable) */}
-          {(activeTab === "all" || activeTab === "tachi-waza") &&
-            syllabus.renrakuKaeshiWaza &&
-            syllabus.renrakuKaeshiWaza.length > 0 && (
-              <div id="combinations">
-                <TechniqueGrid
-                  techniques={syllabus.renrakuKaeshiWaza}
-                  eyebrow="Renraku-waza & Kaeshi-waza"
-                  title="Combinations & Counter-Throws"
-                />
-              </div>
-            )}
+              {view.kata && view.kata.length > 0 && (
+                <div className="border-t border-ink/10 pt-12">
+                  <KataSection kataList={view.kata} />
+                </div>
+              )}
 
-          {/* Ne-waza (Groundwork) */}
-          {(activeTab === "all" || activeTab === "ne-waza") && (
-            <div id="ne-waza">
-              <TechniqueGrid
-                techniques={syllabus.neWaza}
-                eyebrow="Ne-waza Syllabus"
-                title="Groundwork, Pins & Submissions"
-              />
-            </div>
-          )}
-
-          {/* Kata (Forms) */}
-          {(activeTab === "all" || activeTab === "kata") && syllabus.kata && (
-            <div id="kata">
-              <KataSection kataList={syllabus.kata} />
-            </div>
-          )}
-
-          {/* Ukemi & Reiho */}
-          {(activeTab === "all" || activeTab === "ukemi-reiho") && (
-            <div id="ukemi-reiho" className="space-y-12">
-              <TechniqueGrid
-                techniques={syllabus.ukemi}
-                eyebrow="Ukemi-waza"
-                title="Breakfall Mastery"
-              />
-            </div>
-          )}
-
-          {/* Theory, Rules & Culture */}
-          {(activeTab === "all" || activeTab === "theory") && (
-            <div id="theory">
+              {/* Theory and Terms cleanly integrated at the end of curriculum */}
               <GeneralAwarenessSection
-                awareness={syllabus.generalAwareness}
-                reiho={syllabus.reihoAndEtiquette}
+                terms={view.terms}
+                rules={view.rules}
               />
             </div>
           )}
 
-          {/* Passage de Grade Exam Rubrics */}
-          {(activeTab === "all" || activeTab === "exam") && (
-            <div id="exam">
-              <PassageDeGradeSection
-                exam={syllabus.examRequirements}
-                rankName={syllabus.rank}
-              />
+          {/* Tab 2: Passage de Grade Exam Rubrics & Preparation */}
+          {activeMode === "passage-de-grade" && (
+            <div className="animate-rise">
+              <PassageDeGradeSection view={view} />
             </div>
           )}
         </div>
       </section>
 
-      {/* Prev / Next Belt Stepper Navigator */}
+      {/* Prev / Next Grade Stepper Footer */}
       <BeltNavigator
-        prevSlug={syllabus.prevBeltSlug}
-        nextSlug={syllabus.nextBeltSlug}
+        prevSlug={view.prevSlug}
+        nextSlug={view.nextSlug}
       />
     </div>
   );

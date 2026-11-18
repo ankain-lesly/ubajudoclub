@@ -50,7 +50,7 @@ export default function DashboardLayout() {
   return (
     <div className="flex min-h-screen bg-background text-foreground">
       {/* Desktop Persistent Sidebar */}
-      <aside className="hidden lg:fixed lg:inset-y-0 lg:z-30 lg:flex lg:w-64 lg:flex-col">
+      <aside className="hidden lg:fixed lg:inset-y-0 lg:z-30 lg:flex lg:w-68 lg:flex-col">
         <CoachSidebar
           email={user?.email}
           role={user?.role}
