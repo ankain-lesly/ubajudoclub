@@ -1,3 +1,5 @@
+import { Link } from "react-router";
+import { ArrowUpRight } from "lucide-react";
 import { motion } from "framer-motion";
 import Reveal from "@/components/visual/Reveal";
 import SectionHeading from "@/components/visual/SectionHeading";
@@ -21,39 +23,47 @@ const BeltLadder = () => (
     <div className="mt-14 grid gap-px overflow-hidden rounded-lg border border-ink/12 bg-ink/12 sm:grid-cols-2 lg:grid-cols-4">
       {BELTS.map((belt, i) => (
         <Reveal key={belt.rank} delay={i * 0.04} className="bg-card">
-          <div className="group h-full p-6 transition-colors hover:bg-secondary/60">
-            <div className="flex items-center justify-between">
-              <span className="font-display text-lg font-semibold tracking-[-0.01em]">
-                {belt.rank}
-              </span>
-              <motion.span
-                initial={{ width: 0 }}
-                whileInView={{ width: 36 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{
-                  duration: 0.85,
-                  delay: 0.12 + i * 0.05,
-                  ease: [0.16, 1, 0.3, 1],
-                }}
-                className="h-1.5 rounded-full"
-                style={{ backgroundColor: belt.color }}
-              />
+          <Link
+            to={`/belts/${belt.rank.toLowerCase()}`}
+            className="group flex h-full flex-col justify-between p-6 transition-colors hover:bg-secondary/60">
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="font-display text-lg font-semibold tracking-[-0.01em] transition-colors group-hover:text-primary">
+                  {belt.rank}
+                </span>
+                <motion.span
+                  initial={{ width: 0 }}
+                  whileInView={{ width: 36 }}
+                  viewport={{ once: true, margin: "-60px" }}
+                  transition={{
+                    duration: 0.85,
+                    delay: 0.12 + i * 0.05,
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
+                  className="h-1.5 rounded-full"
+                  style={{ backgroundColor: belt.color }}
+                />
+              </div>
+              <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
+                {belt.kyu}
+              </p>
+              <p className="mt-6 flex items-baseline gap-1.5">
+                <span className="font-display text-3xl font-semibold tabular-nums tracking-[-0.03em]">
+                  {belt.sessions}
+                </span>
+                <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
+                  sessions
+                </span>
+              </p>
+              <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">
+                {belt.focus}
+              </p>
             </div>
-            <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
-              {belt.kyu}
-            </p>
-            <p className="mt-6 flex items-baseline gap-1.5">
-              <span className="font-display text-3xl font-semibold tabular-nums tracking-[-0.03em]">
-                {belt.sessions}
-              </span>
-              <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
-                sessions
-              </span>
-            </p>
-            <p className="mt-3 text-[12.5px] leading-relaxed text-muted-foreground">
-              {belt.focus}
-            </p>
-          </div>
+            <div className="mt-5 flex items-center gap-1 font-mono text-[9px] uppercase tracking-[0.16em] text-primary transition-transform group-hover:translate-x-0.5">
+              <span>View Syllabus</span>
+              <ArrowUpRight className="h-3 w-3" />
+            </div>
+          </Link>
         </Reveal>
       ))}
       <div className="flex flex-col justify-between bg-band p-6 text-band-foreground sm:col-span-2 lg:col-span-1">

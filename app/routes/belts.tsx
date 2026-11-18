@@ -107,15 +107,18 @@ const Belts = () => (
               {BELTS.map((belt) => (
                 <tr
                   key={belt.rank}
-                  className="transition-colors duration-300 hover:bg-secondary/50">
+                  className="group transition-colors duration-300 hover:bg-secondary/50">
                   <td className="whitespace-nowrap px-5 py-4">
-                    <span className="flex items-center gap-2.5 font-medium">
+                    <Link
+                      to={`/belts/${belt.rank.toLowerCase()}`}
+                      className="flex items-center gap-2.5 font-medium transition-colors group-hover:text-primary">
                       <span
                         className="h-1.5 w-6 rounded-full"
                         style={{ backgroundColor: belt.color }}
                       />
-                      {belt.rank}
-                    </span>
+                      <span>{belt.rank}</span>
+                      <ArrowUpRight className="h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
+                    </Link>
                   </td>
                   <td className="px-5 py-4 text-muted-foreground">
                     {belt.kyu}
@@ -124,7 +127,11 @@ const Belts = () => (
                     {belt.sessions}
                   </td>
                   <td className="hidden px-5 py-4 text-muted-foreground sm:table-cell">
-                    {belt.focus}
+                    <Link
+                      to={`/belts/${belt.rank.toLowerCase()}`}
+                      className="transition-colors hover:text-foreground">
+                      {belt.focus}
+                    </Link>
                   </td>
                 </tr>
               ))}
