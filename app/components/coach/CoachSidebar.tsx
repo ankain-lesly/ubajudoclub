@@ -95,6 +95,7 @@ export function CoachSidebar({
       {/* Top Brand Section */}
       <div className="p-5 border-b border-white/10">
         <div className="flex items-center gap-3">
+          {/* Crest */}
           <ClubMark variant="crest" className="h-9 w-9" inverted />
           <div className="min-w-0 flex-1">
             <h1 className="font-display text-[15px] font-semibold leading-tight tracking-[-0.01em] text-white">

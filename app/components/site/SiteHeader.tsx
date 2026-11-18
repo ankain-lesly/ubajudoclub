@@ -12,7 +12,7 @@ import {
 import ClubMark from "@/components/visual/ClubMark";
 import ThemeToggle from "@/components/theme/ThemeToggle";
 import { useAuth } from "@/lib/auth/AuthContext";
-import { api } from "@/lib/api/client";
+import { signOutUser } from "@/lib/auth/actions";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,7 +43,7 @@ const SiteHeader = () => {
   const location = useLocation();
 
   const isCoachOrAdmin =
-    user && (user.role === "coach" || user.role === "admin");
+    user && (user.role === "staff" || user.role === "admin");
 
   const isDojoActive = DOJO_MENU_ITEMS.some((item) =>
     location.pathname.startsWith(item.to),
@@ -68,7 +68,7 @@ const SiteHeader = () => {
       )}>
       <div className="mx-auto flex h-[72px] max-w-6xl items-center justify-between px-5 lg:px-8">
         <Link to="/" className="flex items-center gap-3">
-          <ClubMark className="h-9 w-9" />
+          <ClubMark variant="throw" className="h-9 w-9" />
           <span className="leading-none">
             <span className="block font-display text-[15px] font-semibold tracking-[-0.01em]">
               UBa Judo Club
@@ -251,7 +251,7 @@ const SiteHeader = () => {
                 </Link>
                 <button
                   type="button"
-                  onClick={() => api.auth.logout("/")}
+                  onClick={() => signOutUser("/")}
                   className="rounded-full border border-ink/15 px-5 py-2.5 text-center text-xs font-mono uppercase tracking-wider text-muted-foreground hover:text-foreground">
                   Sign out
                 </button>

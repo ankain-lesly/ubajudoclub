@@ -9,7 +9,7 @@ const SiteFooter = () => (
       <div className="grid gap-12 md:grid-cols-[1.4fr_1fr_1fr]">
         <div>
           <div className="flex items-center gap-3">
-            <ClubMark className="h-10 w-10" />
+            <ClubMark variant="throw" className="h-10 w-10" />
             <span className="font-display text-lg font-semibold tracking-[-0.01em]">
               UBa Judo Club
             </span>

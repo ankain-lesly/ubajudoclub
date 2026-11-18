@@ -11,13 +11,13 @@ const CoachHeader = ({ email, onSignOut }: CoachHeaderProps) => (
   <div className="border-b border-ink/15 bg-band text-band-foreground">
     <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-5 lg:px-8">
       <div className="flex items-center gap-3">
-        <ClubMark className="h-9 w-9" inverted />
+        <ClubMark variant="crest" className="h-9 w-9" inverted />
         <div>
           <p className="font-display text-[15px] font-semibold leading-none tracking-[-0.01em]">
-            Coach console
+            Staff console
           </p>
           <p className="mt-1.5 font-mono text-[9px] uppercase tracking-[0.24em] text-band-foreground/45">
-            {email || "Signed in coach"}
+            {email || "Signed in staff"}
           </p>
         </div>
       </div>
@@ -40,7 +40,7 @@ const CoachHeader = ({ email, onSignOut }: CoachHeaderProps) => (
     <div className="mx-auto flex max-w-6xl items-center gap-2 px-5 pb-4 lg:px-8">
       <ShieldCheck className="h-3.5 w-3.5 text-primary" />
       <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-band-foreground/40">
-        Member records are private to the coaching team
+        Member records are private to the staff team
       </p>
     </div>
   </div>
