@@ -275,36 +275,54 @@ export default function TechniquesRoute({ loaderData }: Route.ComponentProps) {
             </h1>
 
             <p className="mt-4 max-w-2xl text-[15px] sm:text-[16.5px] leading-relaxed text-muted-foreground">
-              Master the standing throws (Tachi-waza), groundwork hold-downs, strangles, joint locks (Ne-waza), and breakfalls (Ukemi) of the Kodokan curriculum practiced at the University of Bamenda.
+              Master the standing throws (Tachi-waza), groundwork hold-downs,
+              strangles, joint locks (Ne-waza), and breakfalls (Ukemi) of the
+              Kodokan curriculum practiced at the University of Bamenda.
             </p>
 
             {/* Quick Stats Strip */}
             <div className="mt-8 flex flex-wrap items-center gap-3 sm:gap-6 pt-4 border-t border-ink/10">
               <div className="flex items-center gap-2">
-                <span className="font-mono text-2xl font-bold text-foreground">76</span>
+                <span className="font-mono text-2xl font-bold text-foreground">
+                  76
+                </span>
                 <span className="text-xs text-muted-foreground leading-tight">
-                  Cataloged<br />Techniques
+                  Cataloged
+                  <br />
+                  Techniques
                 </span>
               </div>
               <div className="h-6 w-px bg-ink/10 hidden sm:block" />
               <div className="flex items-center gap-2">
-                <span className="font-mono text-2xl font-bold text-foreground">42</span>
+                <span className="font-mono text-2xl font-bold text-foreground">
+                  42
+                </span>
                 <span className="text-xs text-muted-foreground leading-tight">
-                  Tachi-waza<br />Throws
+                  Tachi-waza
+                  <br />
+                  Throws
                 </span>
               </div>
               <div className="h-6 w-px bg-ink/10 hidden sm:block" />
               <div className="flex items-center gap-2">
-                <span className="font-mono text-2xl font-bold text-foreground">28</span>
+                <span className="font-mono text-2xl font-bold text-foreground">
+                  28
+                </span>
                 <span className="text-xs text-muted-foreground leading-tight">
-                  Ne-waza<br />Groundwork
+                  Ne-waza
+                  <br />
+                  Groundwork
                 </span>
               </div>
               <div className="h-6 w-px bg-ink/10 hidden sm:block" />
               <div className="flex items-center gap-2">
-                <span className="font-mono text-2xl font-bold text-foreground">5</span>
+                <span className="font-mono text-2xl font-bold text-foreground">
+                  5
+                </span>
                 <span className="text-xs text-muted-foreground leading-tight">
-                  Gokyo<br />Groups
+                  Gokyo
+                  <br />
+                  Groups
                 </span>
               </div>
             </div>
@@ -313,7 +331,7 @@ export default function TechniquesRoute({ loaderData }: Route.ComponentProps) {
       </section>
 
       {/* 2. SEARCH & FILTER TOOLBAR */}
-      <section className="sticky top-16 z-20 border-b border-ink/10 bg-background/95 backdrop-blur-md">
+      <section className="sticky top-0 z-50 border-b border-ink/10 bg-background/95 backdrop-blur-md">
         <div className="mx-auto max-w-6xl px-5 py-4 lg:px-8 space-y-3.5">
           {/* Top row: Search input + View mode toggle */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
@@ -331,25 +349,25 @@ export default function TechniquesRoute({ loaderData }: Route.ComponentProps) {
                 <button
                   type="button"
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                   <X className="h-3.5 w-3.5" />
                 </button>
               )}
             </div>
 
             {/* View controls */}
-            <div className="flex items-center gap-2 self-end sm:self-auto">
+            <div className="flex items-center gap-2 self-end sm:self-auto w-full sm:w-auto">
               {/* Sort By Dropdown */}
-              <div className="flex items-center gap-1.5 rounded-full border border-ink/15 bg-card px-3 py-1.5 text-xs">
+              <div className="flex w-full items-center gap-1.5 rounded-full border border-ink/15 bg-card px-3 py-1.5 text-xs">
                 <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                <span className="text-muted-foreground hidden sm:inline">Sort:</span>
+                <span className="text-muted-foreground hidden sm:inline">
+                  Sort:
+                </span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
-                  className="bg-transparent font-medium text-foreground outline-none cursor-pointer"
-                >
-                  <option value="belt">Belt Grade (White → Black)</option>
+                  className="bg-transparent w-full font-medium text-foreground outline-none cursor-pointer">
+                  <option value="belt">Belt Grade</option>
                   <option value="name">Name (A → Z)</option>
                   <option value="gokyo">Gokyo Group (1 → 5)</option>
                   <option value="group">Technique Sub-group</option>
@@ -365,10 +383,9 @@ export default function TechniquesRoute({ loaderData }: Route.ComponentProps) {
                     "rounded-full p-1.5 transition-colors",
                     viewMode === "grid"
                       ? "bg-primary text-primary-foreground shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
                   )}
-                  title="Grid View"
-                >
+                  title="Grid View">
                   <LayoutGrid className="h-3.5 w-3.5" />
                 </button>
                 <button
@@ -378,10 +395,9 @@ export default function TechniquesRoute({ loaderData }: Route.ComponentProps) {
                     "rounded-full p-1.5 transition-colors",
                     viewMode === "table"
                       ? "bg-primary text-primary-foreground shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
+                      : "text-muted-foreground hover:text-foreground",
                   )}
-                  title="Table / List View"
-                >
+                  title="Table / List View">
                   <List className="h-3.5 w-3.5" />
                 </button>
               </div>
@@ -401,9 +417,8 @@ export default function TechniquesRoute({ loaderData }: Route.ComponentProps) {
                   "rounded-full px-3 py-1.5 font-medium transition-all",
                   primaryFilter === "all"
                     ? "bg-primary text-primary-foreground shadow-xs"
-                    : "bg-card text-muted-foreground hover:text-foreground border border-ink/10"
-                )}
-              >
+                    : "bg-card text-muted-foreground hover:text-foreground border border-ink/10",
+                )}>
                 All ({counts.all})
               </button>
               <button
@@ -416,9 +431,8 @@ export default function TechniquesRoute({ loaderData }: Route.ComponentProps) {
                   "rounded-full px-3 py-1.5 font-medium transition-all",
                   primaryFilter === "throws"
                     ? "bg-primary text-primary-foreground shadow-xs"
-                    : "bg-card text-muted-foreground hover:text-foreground border border-ink/10"
-                )}
-              >
+                    : "bg-card text-muted-foreground hover:text-foreground border border-ink/10",
+                )}>
                 Throws / Tachi-waza ({counts.throws})
               </button>
               <button
@@ -431,9 +445,8 @@ export default function TechniquesRoute({ loaderData }: Route.ComponentProps) {
                   "rounded-full px-3 py-1.5 font-medium transition-all",
                   primaryFilter === "groundwork"
                     ? "bg-primary text-primary-foreground shadow-xs"
-                    : "bg-card text-muted-foreground hover:text-foreground border border-ink/10"
-                )}
-              >
+                    : "bg-card text-muted-foreground hover:text-foreground border border-ink/10",
+                )}>
                 Groundwork / Ne-waza ({counts.groundwork})
               </button>
               <button
@@ -446,9 +459,8 @@ export default function TechniquesRoute({ loaderData }: Route.ComponentProps) {
                   "rounded-full px-3 py-1.5 font-medium transition-all",
                   primaryFilter === "ukemi"
                     ? "bg-primary text-primary-foreground shadow-xs"
-                    : "bg-card text-muted-foreground hover:text-foreground border border-ink/10"
-                )}
-              >
+                    : "bg-card text-muted-foreground hover:text-foreground border border-ink/10",
+                )}>
                 Breakfalls / Ukemi ({counts.ukemi})
               </button>
             </div>
@@ -457,15 +469,18 @@ export default function TechniquesRoute({ loaderData }: Route.ComponentProps) {
             <button
               type="button"
               onClick={() => setMobileFiltersOpen((o) => !o)}
-              className="inline-flex sm:hidden items-center gap-1.5 rounded-full border border-ink/15 bg-card px-3 py-1 text-xs text-muted-foreground"
-            >
+              className="inline-flex sm:hidden items-center gap-1.5 rounded-full border border-ink/15 bg-card px-3 py-1 text-xs text-muted-foreground">
               <Filter className="h-3 w-3" />
               <span>More Filters</span>
             </button>
           </div>
 
           {/* Sub-group and Advanced Facets (Belt, Gokyo, Shiai) */}
-          <div className={cn("space-y-2.5 pt-1", mobileFiltersOpen ? "block" : "hidden sm:block")}>
+          <div
+            className={cn(
+              "space-y-2.5 pt-1",
+              mobileFiltersOpen ? "block" : "hidden sm:block",
+            )}>
             <div className="flex flex-wrap items-center gap-2">
               {/* Sub-group selector */}
               {availableSubgroups.length > 1 && (
@@ -476,8 +491,7 @@ export default function TechniquesRoute({ loaderData }: Route.ComponentProps) {
                   <select
                     value={subgroupFilter}
                     onChange={(e) => setSubgroupFilter(e.target.value)}
-                    className="bg-transparent font-medium text-foreground outline-none cursor-pointer pr-2"
-                  >
+                    className="bg-transparent font-medium text-foreground outline-none cursor-pointer pr-2">
                     <option value="all">All Groups</option>
                     {availableSubgroups.map((group) => (
                       <option key={group} value={group}>
@@ -496,8 +510,7 @@ export default function TechniquesRoute({ loaderData }: Route.ComponentProps) {
                 <select
                   value={beltFilter}
                   onChange={(e) => setBeltFilter(e.target.value)}
-                  className="bg-transparent font-medium text-foreground outline-none cursor-pointer pr-2"
-                >
+                  className="bg-transparent font-medium text-foreground outline-none cursor-pointer pr-2">
                   <option value="all">All Grades</option>
                   {BELTS.map((b) => (
                     <option key={b.rank} value={b.rank}>
@@ -516,8 +529,7 @@ export default function TechniquesRoute({ loaderData }: Route.ComponentProps) {
                   <select
                     value={gokyoFilter}
                     onChange={(e) => setGokyoFilter(e.target.value)}
-                    className="bg-transparent font-medium text-foreground outline-none cursor-pointer pr-2"
-                  >
+                    className="bg-transparent font-medium text-foreground outline-none cursor-pointer pr-2">
                     <option value="all">All Gokyo Sets</option>
                     <option value="1">Dai Ikkyo (Group 1)</option>
                     <option value="2">Dai Nikyo (Group 2)</option>
@@ -536,11 +548,12 @@ export default function TechniquesRoute({ loaderData }: Route.ComponentProps) {
                 <select
                   value={shiaiFilter}
                   onChange={(e) => setShiaiFilter(e.target.value)}
-                  className="bg-transparent font-medium text-foreground outline-none cursor-pointer pr-2"
-                >
+                  className="bg-transparent font-medium text-foreground outline-none cursor-pointer pr-2">
                   <option value="all">All Techniques</option>
                   <option value="allowed">IJF Contest Legal</option>
-                  <option value="banned_leg_grab">Traditional / Kata Only</option>
+                  <option value="banned_leg_grab">
+                    Traditional / Kata Only
+                  </option>
                 </select>
               </div>
 
@@ -549,8 +562,7 @@ export default function TechniquesRoute({ loaderData }: Route.ComponentProps) {
                 <button
                   type="button"
                   onClick={handleResetFilters}
-                  className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] font-mono text-primary hover:bg-primary/20 transition-colors"
-                >
+                  className="inline-flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-[11px] font-mono text-primary hover:bg-primary/20 transition-colors">
                   <RotateCcw className="h-3 w-3" />
                   <span>Reset Filters</span>
                 </button>
@@ -565,7 +577,11 @@ export default function TechniquesRoute({ loaderData }: Route.ComponentProps) {
         {/* Results Count & Current Active Filters summary */}
         <div className="flex items-center justify-between border-b border-ink/8 pb-4 text-xs text-muted-foreground">
           <p>
-            Showing <strong className="text-foreground font-mono">{filteredTechniques.length}</strong> of {techniques.length} techniques
+            Showing{" "}
+            <strong className="text-foreground font-mono">
+              {filteredTechniques.length}
+            </strong>{" "}
+            of {techniques.length} techniques
           </p>
 
           <p className="hidden sm:block font-mono text-[11px]">
@@ -581,13 +597,13 @@ export default function TechniquesRoute({ loaderData }: Route.ComponentProps) {
               No techniques matched your filters
             </h3>
             <p className="mt-1 max-w-sm text-xs text-muted-foreground">
-              Try broadening your search query or reset the filters to browse all 76 techniques in the syllabus.
+              Try broadening your search query or reset the filters to browse
+              all 76 techniques in the syllabus.
             </p>
             <button
               type="button"
               onClick={handleResetFilters}
-              className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground"
-            >
+              className="mt-5 inline-flex items-center gap-1.5 rounded-full bg-primary px-4 py-2 text-xs font-semibold text-primary-foreground">
               <RotateCcw className="h-3.5 w-3.5" />
               <span>Reset All Filters</span>
             </button>
@@ -614,12 +630,20 @@ export default function TechniquesRoute({ loaderData }: Route.ComponentProps) {
                 <thead className="border-b border-ink/10 bg-muted/40 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
                   <tr>
                     <th className="px-5 py-3.5 font-medium">Technique</th>
-                    <th className="px-5 py-3.5 font-medium">Japanese / Kanji</th>
+                    <th className="px-5 py-3.5 font-medium">
+                      Japanese / Kanji
+                    </th>
                     <th className="px-5 py-3.5 font-medium">Sub-group</th>
                     <th className="px-5 py-3.5 font-medium">Belt Tested</th>
-                    <th className="px-5 py-3.5 font-medium">Gokyo</th>
-                    <th className="px-5 py-3.5 font-medium">Primary Cue</th>
-                    <th className="px-5 py-3.5 font-medium text-right">Legality</th>
+                    <th className="px-5 py-3.5 font-medium scale-0 absolute sm:scale-1 sm:relative">
+                      Gokyo
+                    </th>
+                    <th className="px-5 py-3.5 font-medium scale-0 absolute sm:scale-1 sm:relative">
+                      Primary Cue
+                    </th>
+                    <th className="px-5 py-3.5 font-medium text-right scale-0 absolute sm:scale-1 sm:relative">
+                      Legality
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-ink/8">
@@ -627,8 +651,7 @@ export default function TechniquesRoute({ loaderData }: Route.ComponentProps) {
                     <tr
                       key={technique.id}
                       onClick={() => handleSelectTechnique(technique)}
-                      className="cursor-pointer hover:bg-muted/40 transition-colors"
-                    >
+                      className="cursor-pointer hover:bg-muted/40 transition-colors">
                       <td className="px-5 py-3.5">
                         <p className="font-semibold text-foreground hover:text-primary transition-colors">
                           {technique.name}
@@ -652,8 +675,7 @@ export default function TechniquesRoute({ loaderData }: Route.ComponentProps) {
                         <div
                           className="inline-flex items-center"
                           title={`${technique.beltRank} Belt Syllabus`}
-                          aria-label={`${technique.beltRank} Belt`}
-                        >
+                          aria-label={`${technique.beltRank} Belt`}>
                           <BeltBar
                             rank={technique.beltRank}
                             color={technique.beltColor}
@@ -662,7 +684,7 @@ export default function TechniquesRoute({ loaderData }: Route.ComponentProps) {
                         </div>
                       </td>
 
-                      <td className="px-5 py-3.5 font-mono text-xs">
+                      <td className="px-5 py-3.5 font-mono text-xs scale-0 absolute sm:scale-1 sm:relative">
                         {technique.gokyoGroup ? (
                           <span className="rounded border border-primary/30 px-1.5 py-0.5 text-primary text-[10px]">
                             Group {technique.gokyoGroup}
@@ -672,11 +694,13 @@ export default function TechniquesRoute({ loaderData }: Route.ComponentProps) {
                         )}
                       </td>
 
-                      <td className="px-5 py-3.5 text-[11px] text-muted-foreground max-w-xs truncate">
-                        {technique.cues && technique.cues[0] ? technique.cues[0] : "—"}
+                      <td className="px-5 py-3.5 text-[11px] text-muted-foreground max-w-xs truncate scale-0 absolute sm:scale-1 sm:relative">
+                        {technique.cues && technique.cues[0]
+                          ? technique.cues[0]
+                          : "—"}
                       </td>
 
-                      <td className="px-5 py-3.5 text-right font-mono text-[10px]">
+                      <td className="px-5 py-3.5 text-right font-mono text-[10px] scale-0 absolute sm:scale-1 sm:relative">
                         {technique.shiaiStatus === "banned_leg_grab" ? (
                           <span className="rounded bg-destructive/10 px-2 py-0.5 text-destructive font-medium">
                             Traditional
