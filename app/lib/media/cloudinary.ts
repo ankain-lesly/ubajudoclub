@@ -28,10 +28,6 @@ export function getCloudinaryUploadPreset(): string {
 }
 
 export function isCloudinaryConfigured(): boolean {
-  const data = [getCloudinaryCloudName(), getCloudinaryUploadPreset()]
-
-  console.log({data})
-  
   return Boolean(getCloudinaryCloudName() && getCloudinaryUploadPreset());
 }
 
@@ -174,7 +170,6 @@ export async function uploadToCloudinary(
   }
 
   const data = await response.json();
-  console.log(data)
   const resourceType = (data.resource_type === "video" ? "video" : "image") as
     | "image"
     | "video";

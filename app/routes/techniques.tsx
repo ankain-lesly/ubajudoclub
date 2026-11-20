@@ -43,7 +43,7 @@ export function meta(): Route.MetaDescriptors {
         "Explore the complete 76-technique Kodokan Judo syllabus archive at UBa Judo Club. Search and filter standing throws, groundwork, and breakfalls.",
     },
     { property: "og:image", content: ogImageUrl },
-    { property: "og:image:type", content: "image/webp" },
+    { property: "og:image:type", content: "image/jpeg" },
     { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:image", content: ogImageUrl },
   ];
