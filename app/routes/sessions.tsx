@@ -20,17 +20,19 @@ import HeroBackdrop from "@/components/visual/HeroBackdrop";
 import heroMatAction from "@/assets/images/132f87024_generated_5ca68e15.avif";
 import { cn } from "@/lib/utils";
 import { getOgImageUrl, isVideoUrl } from "@/lib/media/cloudinary";
+import { env } from "@/lib/env";
 import type { Route } from "./+types/sessions";
 
 export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
   const sessions = loaderData?.sessions || [];
   const firstSession = sessions[0];
   const selectedMedia =
+    firstSession?.media?.find((m) => m.is_cover) ??
     firstSession?.media?.find((m) => m.media_type === "IMAGE") ??
     firstSession?.media?.[0];
   const firstImage = selectedMedia
     ? getOgImageUrl(selectedMedia.url, selectedMedia.media_type)
-    : undefined;
+    : `${env.siteUrl}/images/ubajudo-banner.jpg`;
   const description =
     "Explore training logs, syllabus focuses, and photo captures from UBa Judo Club at UBa Campus Amphi 100.";
 
@@ -192,7 +194,10 @@ const Sessions = ({ loaderData }: Route.ComponentProps) => {
         {/* Sessions Grid */}
         <div className="mt-8 grid gap-6 md:grid-cols-2">
           {filteredSessions.map((session) => {
-            const firstMedia = session.media?.[0];
+            const firstMedia =
+              session.media?.find((m) => m.is_cover) ??
+              session.media?.find((m) => m.media_type === "IMAGE") ??
+              session.media?.[0];
             const isUpcoming = (session.session_date || "") > today;
 
             return (

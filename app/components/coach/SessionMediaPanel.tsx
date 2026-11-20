@@ -8,12 +8,14 @@ import {
   ExternalLink,
   Plus,
   Film,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { SessionMedia } from "@/lib/types";
 import {
   uploadMultipleSessionMedia,
   deleteSessionMedia,
+  setSessionMediaCover,
 } from "@/lib/supabase/storage";
 import { isVideoUrl } from "@/lib/media/cloudinary";
 
@@ -39,8 +41,26 @@ export function SessionMediaPanel({
     null,
   );
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [settingCoverId, setSettingCoverId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+
+  const handleSetCover = async (item: SessionMedia) => {
+    if (!sessionId) return;
+    setSettingCoverId(item.id);
+    setErrorMessage(null);
+    try {
+      await setSessionMediaCover(item.id, sessionId);
+      if (onMediaChanged) {
+        await onMediaChanged();
+      }
+    } catch (err: any) {
+      console.error("Set cover error:", err);
+      setErrorMessage(err?.message || "Failed to set cover image.");
+    } finally {
+      setSettingCoverId(null);
+    }
+  };
 
   const handleFiles = async (files: FileList | File[]) => {
     if (!sessionId) {
@@ -245,8 +265,36 @@ export function SessionMediaPanel({
                     />
                   )}
 
+                  {/* Top-left Cover Badge */}
+                  {item.is_cover && (
+                    <div className="absolute left-1.5 top-1.5 z-10 flex items-center gap-1 rounded bg-amber-400 px-1.5 py-0.5 text-[9px] font-bold tracking-wider text-black shadow-xs">
+                      <Star className="h-2.5 w-2.5 fill-black" />
+                      <span>COVER</span>
+                    </div>
+                  )}
+
                   {/* Top-right Action Buttons */}
-                  <div className="absolute right-1.5 top-1.5 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+                  <div className="absolute right-1.5 top-1.5 z-10 flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
+                    <button
+                      type="button"
+                      disabled={settingCoverId === item.id || item.is_cover}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSetCover(item);
+                      }}
+                      className={`flex h-6 w-6 items-center justify-center rounded-md backdrop-blur-xs transition-colors ${
+                        item.is_cover
+                          ? "bg-amber-400 text-black cursor-default"
+                          : "bg-black/70 text-white hover:bg-amber-400 hover:text-black"
+                      }`}
+                      title={item.is_cover ? "Current cover image" : "Set as cover image"}
+                    >
+                      {settingCoverId === item.id ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Star className={`h-3 w-3 ${item.is_cover ? "fill-black" : ""}`} />
+                      )}
+                    </button>
                     <a
                       href={item.url}
                       target="_blank"

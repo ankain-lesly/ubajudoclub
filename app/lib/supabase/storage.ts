@@ -156,3 +156,34 @@ export async function deleteSessionMedia(
     throw error;
   }
 }
+
+/**
+ * Sets a specific media item as the cover for its session,
+ * automatically unsetting is_cover on all other media in that session.
+ */
+export async function setSessionMediaCover(
+  mediaId: string,
+  sessionId: string,
+): Promise<void> {
+  const supabase = getSupabaseBrowserClient();
+
+  // 1. Unset any existing cover for this session
+  const { error: unsetError } = await supabase
+    .from("session_media")
+    .update({ is_cover: false })
+    .eq("session_id", sessionId);
+
+  if (unsetError) {
+    throw new Error(`Failed to reset covers: ${unsetError.message}`);
+  }
+
+  // 2. Mark this media item as the cover
+  const { error: setError } = await supabase
+    .from("session_media")
+    .update({ is_cover: true })
+    .eq("id", mediaId);
+
+  if (setError) {
+    throw new Error(`Failed to set cover: ${setError.message}`);
+  }
+}

@@ -31,6 +31,8 @@ import Reveal from "@/components/visual/Reveal";
 import SectionBackdrop from "@/components/visual/SectionBackdrop";
 import { VENUE } from "@/lib/data/club";
 import { getOgImageUrl, isVideoUrl } from "@/lib/media/cloudinary";
+import { env } from "@/lib/env";
+import defaultSessionCover from "@/assets/images/judo-practice.jpg";
 import { cn } from "@/lib/utils";
 import type { Route } from "./+types/session.$id";
 
@@ -79,12 +81,14 @@ export function meta({ loaderData }: Route.MetaArgs) {
   const { session } = loaderData;
   const isTodaySession = isToday(session.session_date);
 
-  // Get first media of type IMAGE, otherwise fallback to the first media item
+  // Get marked cover media, otherwise first image, otherwise first media
   const selectedMedia =
-    session.media?.find((m) => m.media_type === "IMAGE") ?? session.media?.[0];
+    session.media?.find((m) => m.is_cover) ??
+    session.media?.find((m) => m.media_type === "IMAGE") ??
+    session.media?.[0];
   const firstMediaImage = selectedMedia
     ? getOgImageUrl(selectedMedia.url, selectedMedia.media_type)
-    : undefined;
+    : `${env.siteUrl}/images/ubajudo-banner.jpg`;
   const title = `${isTodaySession ? "Today's Session " : ""}${session.focus || "Training Session"} — UBa Judo Club`;
 
   // Compact social description under 125 characters with high-converting CTA
@@ -163,7 +167,15 @@ const SessionDetail = ({ loaderData }: Route.ComponentProps) => {
   const [activeMediaIndex, setActiveMediaIndex] = useState<number | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const firstMedia = session.media?.[0];
+  const coverMedia =
+    session.media?.find((m) => m.is_cover) ??
+    session.media?.find((m) => m.media_type === "IMAGE") ??
+    session.media?.[0];
+  const coverIndex =
+    coverMedia && session.media
+      ? session.media.findIndex((m) => m.id === coverMedia.id)
+      : 0;
+  const firstMedia = coverMedia;
   const activeMedia =
     activeMediaIndex !== null && session.media
       ? session.media[activeMediaIndex]
@@ -313,7 +325,7 @@ const SessionDetail = ({ loaderData }: Route.ComponentProps) => {
                 </div>
                 <div>
                   <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
-                    Lead Sensei
+                    Coordinator
                   </p>
                   <p className="mt-1 text-xs font-medium text-foreground truncate">
                     {session.coach || "Club Coach"}
@@ -372,7 +384,7 @@ const SessionDetail = ({ loaderData }: Route.ComponentProps) => {
                   return (
                     <button
                       type="button"
-                      onClick={() => setActiveMediaIndex(0)}
+                      onClick={() => setActiveMediaIndex(coverIndex >= 0 ? coverIndex : 0)}
                       className="group relative w-full block text-left overflow-hidden rounded-2xl border border-ink/12 bg-band shadow-[0_30px_70px_-35px_rgba(20,21,15,0.7)] cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all hover:scale-[1.01] hover:border-ink/25"
                       aria-label={firstMedia.caption || "Open session gallery"}>
                       {isVideo ? (
@@ -447,11 +459,21 @@ const SessionDetail = ({ loaderData }: Route.ComponentProps) => {
                   );
                 })()
               ) : (
-                <div className="flex h-[320px] w-full flex-col items-center justify-center rounded-2xl border border-ink/12 bg-card p-8 text-center text-muted-foreground">
-                  <Camera className="h-8 w-8 text-muted-foreground/40" />
-                  <p className="mt-3 font-display text-base font-medium">
-                    No visual media attached to this session
-                  </p>
+                <div className="group relative w-full overflow-hidden rounded-2xl border border-ink/12 bg-band shadow-[0_30px_70px_-35px_rgba(20,21,15,0.7)]">
+                  <Image
+                    src={defaultSessionCover}
+                    alt={session.focus || "UBa Judo Mat Session"}
+                    className="h-[340px] w-full object-cover sm:h-[420px]"
+                  />
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-band/90 via-band/20 to-transparent" />
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 p-5 sm:p-6">
+                    <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-primary">
+                      UBa Campus Amphi 100
+                    </p>
+                    <p className="mt-1 text-sm font-medium leading-snug text-band-foreground">
+                      Tatami Mat Session & Dojo Practice
+                    </p>
+                  </div>
                 </div>
               )}
             </div>

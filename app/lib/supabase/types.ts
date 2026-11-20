@@ -305,6 +305,7 @@ export type Database = {
           caption: string | null;
           created_at: string;
           id: string;
+          is_cover: boolean;
           media_type: string;
           public_id: string | null;
           session_id: string;
@@ -315,6 +316,7 @@ export type Database = {
           caption?: string | null;
           created_at?: string;
           id?: string;
+          is_cover?: boolean;
           media_type?: string;
           public_id?: string | null;
           session_id: string;
@@ -325,6 +327,7 @@ export type Database = {
           caption?: string | null;
           created_at?: string;
           id?: string;
+          is_cover?: boolean;
           media_type?: string;
           public_id?: string | null;
           session_id?: string;

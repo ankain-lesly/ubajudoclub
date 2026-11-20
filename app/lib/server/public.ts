@@ -1,8 +1,11 @@
 import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { getMockMembers } from "@/lib/data/members";
 import { getMockSessions, getMockSessionById } from "@/lib/data/sessions";
+import { GALLERY } from "@/lib/data/gallery";
+import { isVideoUrl } from "@/lib/media/cloudinary";
 import type {
   ClubEvent,
+  GalleryItem,
   Member,
   PublicStats,
   SessionCoordinator,
@@ -240,5 +243,76 @@ export async function getPublicStats(): Promise<PublicStats | null> {
     return (data as PublicStats | null) ?? null;
   } catch {
     return null;
+  }
+}
+
+/**
+ * Public gallery data access:
+ * Fetches all persisted session media enriched with parent training session details.
+ * Falls back to curated static gallery items if no media exists.
+ */
+export async function getPublicGalleryItems(request?: Request): Promise<GalleryItem[]> {
+  try {
+    const { supabase } = getSupabaseServerClient(request);
+
+    const { data: mediaList, error } = await supabase
+      .from("session_media")
+      .select("*, training_sessions(id, focus, start_time, coach)")
+      .order("created_at", { ascending: false });
+
+    if (error || !mediaList || mediaList.length === 0) {
+      if (error) console.warn("Supabase public gallery query error:", error.message);
+      return GALLERY;
+    }
+
+    return mediaList.map((m: any) => {
+      const session = m.training_sessions;
+      const sessionDate = session?.start_time ? session.start_time.split("T")[0] : "";
+      const year = sessionDate
+        ? sessionDate.split("-")[0]
+        : new Date(m.created_at).getFullYear().toString();
+      const isVideo = m.media_type === "VIDEO" || isVideoUrl(m.url);
+
+      const focusLower = (session?.focus || "").toLowerCase();
+      let category = isVideo ? "Videos" : "Mat work";
+      if (
+        focusLower.includes("competition") ||
+        focusLower.includes("tournament") ||
+        focusLower.includes("shiai")
+      ) {
+        category = "Competition";
+      } else if (
+        focusLower.includes("grading") ||
+        focusLower.includes("kata") ||
+        focusLower.includes("belt")
+      ) {
+        category = "Community";
+      } else if (
+        focusLower.includes("randori") ||
+        focusLower.includes("drill") ||
+        focusLower.includes("throw") ||
+        focusLower.includes("tachi")
+      ) {
+        category = "Training";
+      }
+
+      return {
+        id: m.id,
+        src: m.url,
+        thumbnailUrl: m.thumbnail_url || m.url,
+        alt: m.caption || session?.focus || "UBa Judo Tatami Capture",
+        caption: m.caption || session?.focus || "Mat practice at UBa Campus Amphi 100",
+        category,
+        year,
+        sessionId: m.session_id,
+        sessionFocus: session?.focus || "Mat Session",
+        sessionDate,
+        coach: session?.coach || "Club Coach",
+        mediaType: isVideo ? "VIDEO" : "IMAGE",
+      };
+    });
+  } catch (err) {
+    console.warn("Failed to fetch gallery items from Supabase:", err);
+    return GALLERY;
   }
 }

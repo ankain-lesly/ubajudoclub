@@ -46,6 +46,7 @@ export interface SessionMedia {
   thumbnail_url?: string | null;
   media_type: "IMAGE" | "VIDEO" | string;
   caption?: string | null;
+  is_cover?: boolean;
   created_at?: string;
 }
 
@@ -133,11 +134,18 @@ export interface ClubEvent {
 }
 
 export interface GalleryItem {
+  id?: string;
   src: string;
   alt: string;
   caption: string;
-  category: "Mat work" | "Training" | "Competition" | "Community";
+  category: "Mat work" | "Training" | "Competition" | "Community" | "Photos" | "Videos" | string;
   year: string;
+  sessionId?: string;
+  sessionFocus?: string;
+  sessionDate?: string;
+  coach?: string;
+  mediaType?: "IMAGE" | "VIDEO" | string;
+  thumbnailUrl?: string;
 }
 
 export interface PublicStats {

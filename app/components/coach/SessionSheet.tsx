@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import {
   Loader2,
   Calendar,
@@ -8,6 +8,8 @@ import {
   CheckCircle2,
   UploadCloud,
   X,
+  Search,
+  Check,
 } from "lucide-react";
 import {
   Sheet,
@@ -55,11 +57,29 @@ export function SessionSheet({
   const [focus, setFocus] = useState("");
   const [notes, setNotes] = useState("");
   const [selectedCoordinators, setSelectedCoordinators] = useState<string[]>([]);
+  const [coordinatorSearchQuery, setCoordinatorSearchQuery] = useState("");
+  const [coordinatorDropdownOpen, setCoordinatorDropdownOpen] = useState(false);
   const [stagedFiles, setStagedFiles] = useState<File[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   const isEditing = Boolean(session?.id);
+
+  const selectedMembers = useMemo(() => {
+    return members.filter((m) => selectedCoordinators.includes(m.id));
+  }, [members, selectedCoordinators]);
+
+  const filteredMembers = useMemo(() => {
+    if (!coordinatorSearchQuery.trim()) return members;
+    const q = coordinatorSearchQuery.toLowerCase();
+    return members.filter(
+      (m) =>
+        m.full_name?.toLowerCase().includes(q) ||
+        (m.email && m.email.toLowerCase().includes(q)) ||
+        (m.matricule && m.matricule.toLowerCase().includes(q)) ||
+        (m.belt_rank && m.belt_rank.toLowerCase().includes(q)),
+    );
+  }, [members, coordinatorSearchQuery]);
 
   useEffect(() => {
     if (session) {
@@ -85,6 +105,8 @@ export function SessionSheet({
       setSelectedCoordinators([]);
     }
     setStagedFiles([]);
+    setCoordinatorSearchQuery("");
+    setCoordinatorDropdownOpen(false);
     setError("");
   }, [session, open]);
 
@@ -222,41 +244,133 @@ export function SessionSheet({
               />
             </div>
 
-            {/* Multi-coordinator selection */}
-            <div className="space-y-1.5">
+            {/* Searchable Multi-coordinator selection */}
+            <div className="space-y-2">
               <Label className="text-xs font-mono uppercase tracking-wider text-muted-foreground flex items-center justify-between">
                 <span>Coordinators on Mat</span>
                 <span className="text-[10px] text-primary">
                   {selectedCoordinators.length} selected
                 </span>
               </Label>
-              <div className="max-h-36 overflow-y-auto rounded-md border border-input bg-background p-2 space-y-1">
-                {members.length === 0 && (
-                  <p className="text-xs text-muted-foreground p-2 text-center">
-                    No athletes registered yet.
-                  </p>
-                )}
-                {members.map((m) => {
-                  const isChecked = selectedCoordinators.includes(m.id);
-                  return (
-                    <label
+
+              {/* Selected Coordinator Tags */}
+              {selectedMembers.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 p-2 rounded-lg border border-ink/10 bg-secondary/20">
+                  {selectedMembers.map((m) => (
+                    <span
                       key={m.id}
-                      className="flex items-center gap-2 p-1.5 rounded hover:bg-secondary/50 cursor-pointer text-xs"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-ink/12 bg-background py-1 pl-2.5 pr-1.5 text-xs shadow-xs"
                     >
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => toggleCoordinator(m.id)}
-                        className="rounded border-ink/20 text-primary focus:ring-primary h-3.5 w-3.5"
-                      />
-                      <span className="font-medium flex-1">{m.full_name}</span>
-                      <span className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground">
-                        <BeltBar rank={m.belt_rank} className="h-3.5 w-auto" />
-                        {m.belt_rank}
-                      </span>
-                    </label>
-                  );
-                })}
+                      <BeltBar rank={m.belt_rank} className="h-3 w-auto" />
+                      <span className="font-medium text-foreground">{m.full_name}</span>
+                      <button
+                        type="button"
+                        onClick={() => toggleCoordinator(m.id)}
+                        className="rounded-full p-0.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors cursor-pointer"
+                        title={`Remove ${m.full_name}`}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Searchable Combobox Input & Dropdown */}
+              <div className="relative">
+                <div className="relative flex items-center">
+                  <Search className="absolute left-2.5 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+                  <Input
+                    value={coordinatorSearchQuery}
+                    onChange={(e) => {
+                      setCoordinatorSearchQuery(e.target.value);
+                      setCoordinatorDropdownOpen(true);
+                    }}
+                    onFocus={() => setCoordinatorDropdownOpen(true)}
+                    placeholder="Search athletes by name, belt, or matricule..."
+                    className="bg-background pl-8 pr-8 text-xs"
+                  />
+                  {coordinatorSearchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setCoordinatorSearchQuery("")}
+                      className="absolute right-2.5 text-muted-foreground hover:text-foreground cursor-pointer"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {coordinatorDropdownOpen && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-20"
+                      onClick={() => setCoordinatorDropdownOpen(false)}
+                    />
+                    <div className="absolute left-0 right-0 top-full z-30 mt-1 max-h-52 overflow-y-auto rounded-lg border border-ink/15 bg-card shadow-lg divide-y divide-ink/8">
+                      {filteredMembers.length === 0 ? (
+                        <div className="px-3 py-3 text-center text-xs text-muted-foreground">
+                          {members.length === 0
+                            ? "No athletes registered in the club yet."
+                            : `No athletes match "${coordinatorSearchQuery}"`}
+                        </div>
+                      ) : (
+                        filteredMembers.map((member) => {
+                          const isSelected = selectedCoordinators.includes(member.id);
+                          return (
+                            <button
+                              key={member.id}
+                              type="button"
+                              onClick={() => {
+                                toggleCoordinator(member.id);
+                              }}
+                              className={`w-full flex items-center justify-between px-3 py-2 text-left text-xs transition-colors cursor-pointer ${
+                                isSelected ? "bg-primary/10 text-primary" : "hover:bg-muted/50"
+                              }`}
+                            >
+                              <div className="flex items-center gap-2 min-w-0 pr-2">
+                                <div
+                                  className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${
+                                    isSelected
+                                      ? "border-primary bg-primary text-primary-foreground"
+                                      : "border-input bg-background"
+                                  }`}
+                                >
+                                  {isSelected && <Check className="h-3 w-3 stroke-[3]" />}
+                                </div>
+                                <div className="min-w-0">
+                                  <p
+                                    className={`font-medium truncate ${
+                                      isSelected ? "text-primary" : "text-foreground"
+                                    }`}
+                                  >
+                                    {member.full_name}
+                                  </p>
+                                  {member.email && (
+                                    <p className="text-[10px] text-muted-foreground truncate">
+                                      {member.email}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <span className="inline-flex items-center gap-1.5 rounded bg-secondary px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">
+                                  <BeltBar rank={member.belt_rank} className="h-3 w-auto" />
+                                  {member.belt_rank}
+                                </span>
+                                {member.matricule && (
+                                  <span className="font-mono text-[9px] text-muted-foreground/75">
+                                    #{member.matricule}
+                                  </span>
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
