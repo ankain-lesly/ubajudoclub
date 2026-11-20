@@ -12,6 +12,8 @@ import RingField from "@/components/visual/RingField";
 import Reveal from "@/components/visual/Reveal";
 import SectionBackdrop from "@/components/visual/SectionBackdrop";
 import BeltBar from "@/components/visual/BeltBar";
+import HeroBackdrop from "@/components/visual/HeroBackdrop";
+import heroBeltDiscipline from "@/assets/images/hero-belt-discipline.jpg";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { Route } from "./+types/members";
@@ -78,8 +80,7 @@ const Members = ({ loaderData }: Route.ComponentProps) => {
     <>
       {/* Header Banner */}
       <section className="relative overflow-hidden border-b border-ink/10">
-        <div className="pointer-events-none absolute inset-0 tatami opacity-60" />
-        <SectionBackdrop variant="dots" />
+        <HeroBackdrop src={heroBeltDiscipline} imageClassName="object-[center_35%]" opacityClassName="opacity-50 dark:opacity-60" />
         <Aura grid={false} />
         <div className="pointer-events-none absolute -right-36 -top-28 hidden h-[480px] w-[480px] opacity-70 lg:block">
           <RingField />

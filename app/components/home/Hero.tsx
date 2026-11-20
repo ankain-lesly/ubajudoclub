@@ -3,17 +3,25 @@ import { ArrowUpRight, MapPin, Clock } from "lucide-react";
 import { VENUE, WEEK } from "@/lib/data/club";
 import Aura from "@/components/visual/Aura";
 import RingField from "@/components/visual/RingField";
+import HeroBackdrop from "@/components/visual/HeroBackdrop";
+import heroJudoAction from "@/assets/images/1ea126a4b_generated_image.avif";
 
 const bars = [58, 72, 64, 81, 69, 88];
 
 const Hero = () => (
   <section className="relative overflow-hidden">
-    <div className="pointer-events-none absolute inset-0 tatami opacity-70" />
+    {/* Cinematic Judo Action Background */}
+    <HeroBackdrop
+      src={heroJudoAction}
+      imageClassName="object-[center_35%]"
+      opacityClassName="opacity-50 dark:opacity-60"
+    />
+
     <Aura grid={false} />
-    <div className="pointer-events-none absolute -right-40 -top-28 hidden h-[600px] w-[600px] lg:block">
+    <div className="pointer-events-none absolute -right-40 -top-28 hidden h-[600px] w-[600px] opacity-75 lg:block">
       <RingField />
     </div>
-    <div className="pointer-events-none absolute -left-36 bottom-4 hidden h-[360px] w-[360px] opacity-50 lg:block">
+    <div className="pointer-events-none absolute -left-36 bottom-4 hidden h-[360px] w-[360px] opacity-40 lg:block">
       <RingField />
     </div>
     <div
@@ -78,7 +86,7 @@ const Hero = () => (
       </div>
 
       <div className="relative animate-rise [animation-delay:150ms]">
-        <div className="rounded-lg border border-ink/12 bg-card p-6 shadow-[0_30px_80px_-50px_rgba(20,21,15,0.55)]">
+        <div className="rounded-lg border border-ink/12 bg-card/90 backdrop-blur-md p-6 shadow-[0_30px_80px_-50px_rgba(20,21,15,0.55)]">
           <div className="flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.24em] text-muted-foreground">
             <span>Next on the mat</span>
             <span className="flex items-center gap-1.5 text-accent">

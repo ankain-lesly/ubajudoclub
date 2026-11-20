@@ -1,8 +1,8 @@
 import { Image } from "@/components/ui/image";
 import Reveal from "@/components/visual/Reveal";
+import heroActionImg from "@/assets/images/1ea126a4b_generated_image.avif";
 
-const HERO_IMAGE =
-  "/images/1ea126a4b_generated_image.avif";
+const HERO_IMAGE = heroActionImg;
 
 const MatBand = () => (
   <section className="mx-auto max-w-6xl px-5 pt-4 lg:px-8">

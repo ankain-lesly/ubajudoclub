@@ -16,7 +16,8 @@ import { Image } from "@/components/ui/image";
 import Aura from "@/components/visual/Aura";
 import RingField from "@/components/visual/RingField";
 import Reveal from "@/components/visual/Reveal";
-import SectionBackdrop from "@/components/visual/SectionBackdrop";
+import HeroBackdrop from "@/components/visual/HeroBackdrop";
+import heroMatAction from "@/assets/images/132f87024_generated_5ca68e15.avif";
 import { cn } from "@/lib/utils";
 import { getOgImageUrl, isVideoUrl } from "@/lib/media/cloudinary";
 import type { Route } from "./+types/sessions";
@@ -102,8 +103,13 @@ const Sessions = ({ loaderData }: Route.ComponentProps) => {
     <>
       {/* Hero Section */}
       <section className="relative overflow-hidden border-b border-ink/10">
-        <div className="pointer-events-none absolute inset-0 tatami opacity-60" />
-        <SectionBackdrop variant="weave" />
+        {/* Cinematic Kumi-Kata Mat Action Background */}
+        <HeroBackdrop
+          src={heroMatAction}
+          imageClassName="object-[center_30%]"
+          opacityClassName="opacity-50 dark:opacity-60"
+        />
+
         <Aura grid={false} />
         <div className="pointer-events-none absolute -right-40 -top-32 hidden h-[520px] w-[520px] opacity-70 lg:block">
           <RingField />
@@ -124,7 +130,7 @@ const Sessions = ({ loaderData }: Route.ComponentProps) => {
           </p>
 
           {/* Stat Strip */}
-          <div className="mt-10 flex flex-wrap items-center gap-6 border-t border-ink/10 pt-8 sm:gap-12">
+          <div className="mt-10 inline-flex flex-wrap items-center gap-6 rounded-2xl border border-ink/10 bg-card/60 p-6 backdrop-blur-md sm:gap-12">
             <div>
               <p className="font-mono text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
                 Sessions Logged

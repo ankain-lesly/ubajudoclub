@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useAuth } from "@/lib/auth/AuthContext";
 import {
   Inbox,
   Loader2,
@@ -38,6 +39,8 @@ const STATUS_FILTERS = [
 ] as const;
 
 export default function RequestsPanel({ onMemberAdded }: RequestsPanelProps) {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const { data: rows = [], isLoading } = useJoinRequestsQuery("all");
   const updateStatusMutation = useUpdateJoinRequestStatusMutation();
   const convertMutation = useConvertJoinRequestMutation();
@@ -65,6 +68,7 @@ export default function RequestsPanel({ onMemberAdded }: RequestsPanelProps) {
   };
 
   const deleteRequest = async (row: JoinRequest) => {
+    if (!isAdmin) return;
     if (!row.id || !confirm(`Delete join request from ${row.full_name}?`)) return;
     setBusyId(row.id);
     try {
@@ -466,17 +470,19 @@ export default function RequestsPanel({ onMemberAdded }: RequestsPanelProps) {
                       </Button>
                     )}
 
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      disabled={isBusy}
-                      onClick={() => deleteRequest(row)}
-                      className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                      title="Delete request"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </Button>
+                    {isAdmin && (
+                      <Button
+                        type="button"
+                        size="icon"
+                        variant="ghost"
+                        disabled={isBusy}
+                        onClick={() => deleteRequest(row)}
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                        title="Delete request"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               </div>

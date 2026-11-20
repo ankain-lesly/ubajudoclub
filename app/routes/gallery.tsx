@@ -7,6 +7,8 @@ import Lightbox from "@/components/gallery/LightBox";
 import Aura from "@/components/visual/Aura";
 import RingField from "@/components/visual/RingField";
 import SectionBackdrop from "@/components/visual/SectionBackdrop";
+import HeroBackdrop from "@/components/visual/HeroBackdrop";
+import heroJudoAction from "@/assets/images/1ea126a4b_generated_image.avif";
 import { cn } from "@/lib/utils";
 
 const Gallery = () => {
@@ -28,8 +30,7 @@ const Gallery = () => {
   return (
     <>
       <section className="relative overflow-hidden border-b border-ink/10">
-        <div className="pointer-events-none absolute inset-0 tatami opacity-60" />
-        <SectionBackdrop variant="rings" />
+        <HeroBackdrop src={heroJudoAction} imageClassName="object-[center_35%]" opacityClassName="opacity-55 dark:opacity-65" />
         <Aura grid={false} />
         <div className="pointer-events-none absolute -right-44 -top-32 hidden h-[540px] w-[540px] opacity-70 lg:block">
           <RingField />

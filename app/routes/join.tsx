@@ -15,7 +15,8 @@ import {
 import { useSubmitJoinRequestMutation } from "@/lib/api/member.queries";
 import { VENUE, WEEK } from "@/lib/data/club";
 import Aura from "@/components/visual/Aura";
-import SectionBackdrop from "@/components/visual/SectionBackdrop";
+import HeroBackdrop from "@/components/visual/HeroBackdrop";
+import heroDojoTatami from "@/assets/images/hero-dojo-tatami.jpg";
 import type { Route } from "./+types/join";
 
 export function meta(): Route.MetaDescriptors {
@@ -91,7 +92,12 @@ export default function Join() {
 
   return (
     <div className="relative overflow-hidden">
-      <SectionBackdrop variant="dots" />
+      {/* Cinematic Dojo Hall Background */}
+      <HeroBackdrop
+        src={heroDojoTatami}
+        imageClassName="object-[center_40%]"
+        opacityClassName="opacity-55 dark:opacity-65"
+      />
       <Aura grid={false} />
 
       <div className="relative mx-auto grid max-w-6xl gap-12 px-5 py-16 lg:grid-cols-[1.1fr_0.9fr] lg:px-8 lg:py-24">

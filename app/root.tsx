@@ -14,6 +14,7 @@ import type { Route } from "./+types/root";
 import "./app.css";
 import { AuthProvider } from "@/lib/auth/AuthContext";
 import { createQueryClient } from "@/lib/query-client";
+import { env } from "@/lib/env";
 
 const TITLE = "UBa Judo Club — University of Bamenda";
 const DESCRIPTION =
@@ -35,13 +36,30 @@ export const links: Route.LinksFunction = () => [
     type: "image/svg+xml",
     href: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='%2314150F'/%3E%3Cpath d='M14 39l4-9.5 4 9.5' stroke='%23F6F1E9' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3Cpath d='M17 19c-2 2-3 5-2.5 9 1 1 3.5 1.5 6.5 1 2-.5 2.5-2 2-4-.5-3-2.5-5.5-6-6z' fill='%23F6F1E9'/%3E%3Ccircle cx='17' cy='14' r='3.2' fill='%23F6F1E9'/%3E%3Ccircle cx='33' cy='13.5' r='3.2' fill='%232563EB'/%3E%3Cpath d='M34.5 17.5C33 21.5 28.5 25 21.5 24.5C23.5 22 28 19 32.5 17z' fill='%231D4ED8'/%3E%3Cpath d='M21.5 24.5C24.5 22.5 30.5 19 37.5 18.5c2 0 4 1.5 3 3.5-3 3-10 4.5-16.5 4z' fill='%232563EB'/%3E%3Cpath d='M19 25.5c5-1 11-2 16.5 0 2 1 3.5 3 2.5 4.5-1.5 1.5-4 0-6-1.5-4.5-2.5-10-3-14-2.5' stroke='%23DE3B26' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E",
   },
+  {
+    rel: "icon",
+    type: "image/png",
+    sizes: "32x32",
+    href: "/favicon-32x32.png",
+  },
+  {
+    rel: "icon",
+    type: "image/png",
+    sizes: "16x16",
+    href: "/favicon-16x16.png",
+  },
+  {
+    rel: "apple-touch-icon",
+    sizes: "180x180",
+    href: "/apple-touch-icon.png",
+  },
   { rel: "manifest", href: "/manifest.json" },
 ];
 
 export function meta(): Route.MetaDescriptors {
-
   const content =
     "Judo at UBa Campus Amphi 100: weekly sessions with Monday morning start at 8:00 AM, the Kyu–Dan pathway, and anonymised club turnout.";
+  const ogImageUrl = `${env.siteUrl}/images/ubajudo-banner.jpg`;
 
   return [
     { title: TITLE },
@@ -51,21 +69,27 @@ export function meta(): Route.MetaDescriptors {
     { property: "og:title", content: TITLE },
     {
       property: "og:description",
-      content:
-        "Judo at UBa Campus Amphi 100: weekly sessions with Monday morning start at 8:00 AM, the Kyu–Dan pathway, and anonymised club turnout.",
+      content,
     },
     { property: "og:type", content: "website" },
     { property: "og:site_name", content: "UBa Judo Club" },
-    { name: "twitter:card", content: "summary_large_image" },
-    { property: "og:image", content: "/images/ubajudo-banner.jpg" },
+    { property: "og:image", content: ogImageUrl },
+    { property: "og:image:secure_url", content: ogImageUrl },
     { property: "og:image:width", content: "1200" },
     { property: "og:image:height", content: "630" },
     { property: "og:image:type", content: "image/jpeg" },
     {
       property: "og:image:alt",
-      content,
+      content: "UBa Judo Club — University of Bamenda Dojo & Athletes",
     },
-    { name: "twitter:image" },
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: TITLE },
+    { name: "twitter:description", content: DESCRIPTION },
+    { name: "twitter:image", content: ogImageUrl },
+    {
+      name: "twitter:image:alt",
+      content: "UBa Judo Club — University of Bamenda Dojo & Athletes",
+    },
   ];
 }
 

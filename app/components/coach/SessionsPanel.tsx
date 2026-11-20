@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router";
+import { useAuth } from "@/lib/auth/AuthContext";
 import {
   Calendar,
   Clock,
@@ -40,6 +41,8 @@ export function SessionsPanel({
   onSelectSessionForCheckIn,
   onSelectSessionForWrapUp,
 }: SessionsPanelProps) {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<"all" | "recent" | "upcoming">("all");
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -74,6 +77,7 @@ export function SessionsPanel({
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (!isAdmin) return;
     if (!confirm("Are you sure you want to delete this training session and its records?")) {
       return;
     }
@@ -319,17 +323,19 @@ export function SessionsPanel({
                     <Edit3 className="h-3.5 w-3.5" />
                   </Button>
 
-                  <Button
-                    type="button"
-                    size="icon"
-                    variant="ghost"
-                    disabled={isDeleting}
-                    onClick={(e) => handleDelete(s.id, e)}
-                    className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                    title="Delete session"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                  {isAdmin && (
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      disabled={isDeleting}
+                      onClick={(e) => handleDelete(s.id, e)}
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                      title="Delete session"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  )}
                 </div>
               </div>
             );

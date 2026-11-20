@@ -4,6 +4,8 @@ import SectionHeading from "@/components/visual/SectionHeading";
 import Reveal from "@/components/visual/Reveal";
 import Aura from "@/components/visual/Aura";
 import RingField from "@/components/visual/RingField";
+import HeroBackdrop from "@/components/visual/HeroBackdrop";
+import heroBeltDiscipline from "@/assets/images/hero-belt-discipline.jpg";
 import SpotlightCard from "@/components/visual/SpotlightCard";
 import BeltLadder from "@/components/home/BeltLadder";
 import BeltBar from "@/components/visual/BeltBar";
@@ -30,7 +32,12 @@ const steps = [
 const Belts = () => (
   <div>
     <section className="relative overflow-hidden border-b border-ink/10">
-      <div className="pointer-events-none absolute inset-0 tatami opacity-60" />
+      {/* Cinematic Belt Tying & Discipline Background */}
+      <HeroBackdrop
+        src={heroBeltDiscipline}
+        imageClassName="object-[center_35%]"
+        opacityClassName="opacity-55 dark:opacity-65"
+      />
       <Aura grid={false} />
       <div className="pointer-events-none absolute -right-44 -top-36 hidden h-[560px] w-[560px] opacity-70 lg:block">
         <RingField />

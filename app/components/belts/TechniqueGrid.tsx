@@ -53,7 +53,7 @@ export default function TechniqueGrid({
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-ink/10 pb-4">
         <div>
           <h3 className="font-display text-xl font-semibold tracking-[-0.015em]">
-            New Techniques
+            Techniques
           </h3>
           <p className="text-[13px] text-muted-foreground mt-0.5">
             Techniques introduced at this grade for technical assessment

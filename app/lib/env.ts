@@ -38,6 +38,10 @@ export const env = {
   get cloudinaryUploadPreset(): string {
     return readEnv(import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET, "VITE_CLOUDINARY_UPLOAD_PRESET");
   },
+  get siteUrl(): string {
+    const raw = readEnv(import.meta.env.VITE_SITE_URL, "SITE_URL");
+    return raw ? raw.replace(/\/+$/, "") : "https://ubajudo-club.vercel.app";
+  },
   get isProduction(): boolean {
     return import.meta.env.PROD;
   },

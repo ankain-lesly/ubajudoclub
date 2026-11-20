@@ -8,7 +8,7 @@ import PassageDeGradeSection from "@/components/belts/PassageDeGradeSection";
 import KataSection from "@/components/belts/KataSection";
 import GeneralAwarenessSection from "@/components/belts/GeneralAwarenessSection";
 import BeltNavigator from "@/components/belts/BeltNavigator";
-import SectionBackdrop from "@/components/visual/SectionBackdrop";
+import judoTechniqueDemo from "@/assets/images/judo-technique-demo.webp";
 import { cn } from "@/lib/utils";
 
 export async function loader({ params }: Route.LoaderArgs) {
@@ -156,46 +156,62 @@ export default function BeltSyllabusDetail({ loaderData }: Route.ComponentProps)
         </div>
       </section>
 
-      {/* Main Content Sections */}
-      <section className="relative mx-auto max-w-6xl px-5 py-10 lg:px-8 lg:py-16">
-        <SectionBackdrop variant="weave" className="opacity-35" />
-
-        <div className="relative space-y-16">
-          {/* Tab 1: Curriculum & Techniques + Kata + Theory Terms at the end */}
-          {activeMode === "curriculum" && (
-            <div className="space-y-16 animate-rise">
-              <TechniqueGrid
-                throws={view.resolvedThrows}
-                groundwork={view.resolvedGroundwork}
-                ukemi={view.resolvedUkemi}
-                combinations={view.combinations}
-                counters={view.counters}
-                cumulativeReviewThrows={view.cumulativeReviewThrows}
-                cumulativeReviewGroundwork={view.cumulativeReviewGroundwork}
-              />
-
-              {view.kata && view.kata.length > 0 && (
-                <div className="border-t border-ink/10 pt-12">
-                  <KataSection kataList={view.kata} />
-                </div>
-              )}
-
-              {/* Theory and Terms cleanly integrated at the end of curriculum */}
-              <GeneralAwarenessSection
-                terms={view.terms}
-                rules={view.rules}
-              />
-            </div>
-          )}
-
-          {/* Tab 2: Passage de Grade Exam Rubrics & Preparation */}
-          {activeMode === "passage-de-grade" && (
-            <div className="animate-rise">
-              <PassageDeGradeSection view={view} />
-            </div>
-          )}
+      {/* Main Content Sections with Sticky Grayscale Judo Technique Background */}
+      <div className="relative grid grid-cols-1">
+        {/* Sticky Background Backdrop - Fixed in viewport while scrolling through techniques */}
+        <div
+          aria-hidden="true"
+          className="col-start-1 row-start-1 self-start sticky top-[72px] h-[calc(100vh-72px)] w-full overflow-hidden pointer-events-none select-none z-0"
+        >
+          <img
+            src={judoTechniqueDemo}
+            alt=""
+            className="h-full w-full object-cover object-center grayscale contrast-125 brightness-90 opacity-20 dark:opacity-25 transition-all duration-700"
+            loading="eager"
+          />
+          {/* Seamless Vignette & Contrast Mask for 100% Text Legibility */}
+          <div className="absolute inset-0 bg-radial from-transparent via-background/60 to-background" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background" />
         </div>
-      </section>
+
+        <section className="col-start-1 row-start-1 relative z-10 mx-auto w-full max-w-6xl px-5 py-10 lg:px-8 lg:py-16">
+          <div className="relative space-y-16">
+            {/* Tab 1: Curriculum & Techniques + Kata + Theory Terms at the end */}
+            {activeMode === "curriculum" && (
+              <div className="space-y-16 animate-rise">
+                <TechniqueGrid
+                  throws={view.resolvedThrows}
+                  groundwork={view.resolvedGroundwork}
+                  ukemi={view.resolvedUkemi}
+                  combinations={view.combinations}
+                  counters={view.counters}
+                  cumulativeReviewThrows={view.cumulativeReviewThrows}
+                  cumulativeReviewGroundwork={view.cumulativeReviewGroundwork}
+                />
+
+                {view.kata && view.kata.length > 0 && (
+                  <div className="border-t border-ink/10 pt-12">
+                    <KataSection kataList={view.kata} />
+                  </div>
+                )}
+
+                {/* Theory and Terms cleanly integrated at the end of curriculum */}
+                <GeneralAwarenessSection
+                  terms={view.terms}
+                  rules={view.rules}
+                />
+              </div>
+            )}
+
+            {/* Tab 2: Passage de Grade Exam Rubrics & Preparation */}
+            {activeMode === "passage-de-grade" && (
+              <div className="animate-rise">
+                <PassageDeGradeSection view={view} />
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
 
       {/* Prev / Next Grade Stepper Footer */}
       <BeltNavigator

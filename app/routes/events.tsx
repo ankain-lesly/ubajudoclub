@@ -23,6 +23,8 @@ import Aura from "@/components/visual/Aura";
 import RingField from "@/components/visual/RingField";
 import Reveal from "@/components/visual/Reveal";
 import SectionBackdrop from "@/components/visual/SectionBackdrop";
+import HeroBackdrop from "@/components/visual/HeroBackdrop";
+import heroDojoTatami from "@/assets/images/hero-dojo-tatami.jpg";
 import { cn } from "@/lib/utils";
 
 export async function loader() {
@@ -50,8 +52,7 @@ const Events = ({ loaderData }: Route.ComponentProps) => {
   return (
     <>
       <section className="relative overflow-hidden border-b border-ink/10">
-        <div className="pointer-events-none absolute inset-0 tatami opacity-60" />
-        <SectionBackdrop variant="weave" />
+        <HeroBackdrop src={heroDojoTatami} imageClassName="object-[center_40%]" opacityClassName="opacity-50 dark:opacity-60" />
         <Aura grid={false} />
         <div className="pointer-events-none absolute -right-40 -top-32 hidden h-[520px] w-[520px] opacity-70 lg:block">
           <RingField />

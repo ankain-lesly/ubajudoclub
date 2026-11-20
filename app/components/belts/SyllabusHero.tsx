@@ -6,6 +6,8 @@ import BeltBar from "@/components/visual/BeltBar";
 import Reveal from "@/components/visual/Reveal";
 import Aura from "@/components/visual/Aura";
 import RingField from "@/components/visual/RingField";
+import HeroBackdrop from "@/components/visual/HeroBackdrop";
+import heroBeltDiscipline from "@/assets/images/hero-belt-discipline.jpg";
 
 interface SyllabusHeroProps {
   view: ResolvedBeltView;
@@ -16,8 +18,13 @@ export default function SyllabusHero({ view }: SyllabusHeroProps) {
 
   return (
     <section className="relative overflow-hidden border-b border-ink/10">
-      <div className="pointer-events-none absolute inset-0 tatami opacity-60" />
-      {/* <Aura grid={false} /> */}
+      {/* Cinematic Martial Arts Background with Belt Color Accent */}
+      <HeroBackdrop
+        src={heroBeltDiscipline}
+        imageClassName="object-[center_35%]"
+        opacityClassName="opacity-50 dark:opacity-60"
+        accentColor={view.color}
+      />
       <div className="pointer-events-none absolute -right-32 -top-28 hidden h-[480px] w-[480px] opacity-60 lg:block">
         <RingField />
       </div>
@@ -134,10 +141,10 @@ export default function SyllabusHero({ view }: SyllabusHeroProps) {
           </Reveal>
         </div>
 
-        {/* Bespoke Kyu-to-Dan Vector Spine Stepper */}
-        <div className="mt-6">
+        {/* Compact Kyu-to-Dan Belt Progression Spine */}
+        <Reveal delay={0.08} className="mt-8 border-t border-ink/8 pt-4">
           <KyuDanSpine currentSlug={view.slug} />
-        </div>
+        </Reveal>
       </div>
     </section>
   );

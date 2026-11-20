@@ -1,8 +1,8 @@
 // import { JudoThrowLogo } from "./JudoThrowLogo";
 // import { JudogiCrest } from "./JudogiCrest";
-import LogoCrest from "@/assets/ubajudo-logo-crest.png";
-import LogoThrow from "@/assets/ubajudo-logo.png";
-import { cn } from "cn";
+import LogoCrest from "@/assets/images/ubajudo-logo-crest.png";
+import LogoThrow from "@/assets/images/ubajudo-logo.png";
+import { cn } from "@/lib/utils";
 
 export { JudoThrowLogo } from "./JudoThrowLogo";
 export { JudogiCrest } from "./JudogiCrest";

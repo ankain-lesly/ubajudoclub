@@ -3,9 +3,9 @@ import { Image } from "@/components/ui/image";
 import Reveal from "@/components/visual/Reveal";
 import Aura from "@/components/visual/Aura";
 import SectionBackdrop from "@/components/visual/SectionBackdrop";
+import gripImage from "@/assets/images/132f87024_generated_5ca68e15.avif";
 
-const GRIP_IMAGE =
-  "/images/132f87024_generated_5ca68e15.avif";
+const GRIP_IMAGE = gripImage;
 
 const notes = [
   {
