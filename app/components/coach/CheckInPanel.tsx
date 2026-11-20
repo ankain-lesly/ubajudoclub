@@ -156,7 +156,7 @@ const CheckInPanel = ({
                     )}
                   </div>
                   <div className="mt-1 flex items-center gap-2">
-                    <BeltBar rank={member.belt_rank} className="h-1.5 w-7" />
+                    <BeltBar rank={member.belt_rank} className="h-4 w-auto" />
                     <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                       {member.belt_rank} · {member.matricule || "No matricule"}
                     </span>

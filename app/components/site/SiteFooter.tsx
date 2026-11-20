@@ -30,9 +30,9 @@ const SiteFooter = () => (
             On the mat
           </p>
           <ul className="mt-5 space-y-2.5 text-sm">
-            {WEEK.map((s) => (
+            {WEEK.map((s, i) => (
               <li
-                key={s.day}
+                key={i}
                 className="flex justify-between gap-4 text-foreground/80">
                 <span>{s.day.slice(0, 3)}</span>
                 <span className="font-mono text-[11px] text-muted-foreground">

@@ -80,8 +80,14 @@ export interface SessionTemplate {
 export const WEEK: SessionTemplate[] = [
   {
     day: "Monday",
+    time: "06:00 – 8:00",
+    focus: "Footing & Running",
+    group: "All ranks",
+  },
+  {
+    day: "Monday",
     time: "08:00 – 12:00",
-    focus: "Ukemi and fundamentals",
+    focus: "Workout, Ukemi and fundamentals",
     group: "All ranks",
   },
   {
@@ -138,23 +144,23 @@ export interface Coach {
 
 export const COACHES: Coach[] = [
   {
-    name: "Sensei A. Nfor",
+    name: "Sensei M. Ethien",
     role: "Head coach · 4th Dan",
-    detail: "Technical syllabus, grading board and the competition squad.",
-    initials: "AN",
+    detail: "Primary instructor, technique walk through and grading",
+    initials: "ME",
   },
   {
-    name: "Sensei B. Tatah",
-    role: "Ne-waza lead · 2nd Dan",
-    detail: "Groundwork, pins and turnovers for every rank on the mat.",
+    name: "Coach G. Amandine",
+    role: "Coordinator lead · 2nd Dan",
+    detail: "Technical syllabus, grading board and the competition squad.",
     initials: "BT",
   },
-  {
-    name: "M. Achidi",
-    role: "Athlete welfare · 1st Kyu",
-    detail: "Onboarding, loaner gis and first-session nerves.",
-    initials: "MA",
-  },
+  // {
+  //   name: "M. Achidi",
+  //   role: "Athlete welfare · 1st Kyu",
+  //   detail: "Onboarding, loaner gis and first-session nerves.",
+  //   initials: "MA",
+  // },
 ];
 
 export interface Voice {

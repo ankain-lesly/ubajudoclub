@@ -12,6 +12,7 @@ import {
   Plus,
 } from "lucide-react";
 import MetricCard from "@/components/coach/MetricCard";
+import BeltBar from "@/components/visual/BeltBar";
 import { Button } from "@/components/ui/button";
 import {
   useMembersQuery,
@@ -240,7 +241,8 @@ export default function DashboardOverviewRoute() {
                     </p>
                   </div>
 
-                  <span className="rounded bg-secondary px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
+                  <span className="inline-flex items-center gap-1.5 rounded bg-secondary px-2 py-0.5 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
+                    <BeltBar rank={member.belt_rank || "White"} className="h-3.5 w-auto" />
                     {member.belt_rank || "White"}
                   </span>
                 </div>

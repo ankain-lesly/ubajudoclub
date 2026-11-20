@@ -36,9 +36,9 @@ const Schedule = () => (
         <div>
           <Reveal>
             <div className="divide-y divide-ink/12 border-y border-ink/12">
-              {WEEK.map((session) => (
+              {WEEK.map((session, i) => (
                 <div
-                  key={session.day}
+                  key={i}
                   className="group relative grid gap-x-6 gap-y-1.5 py-7 md:grid-cols-[120px_1fr_auto] md:items-center">
                   <span className="pointer-events-none absolute inset-x-[-1.25rem] inset-y-0 rounded-md bg-primary/[0.055] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                   <p className="relative flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground">

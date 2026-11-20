@@ -5,9 +5,6 @@ import {
   X,
   ArrowUpRight,
   ChevronDown,
-  ShieldCheck,
-  LogOut,
-  LayoutDashboard,
 } from "lucide-react";
 import ClubMark from "@/components/visual/ClubMark";
 import ThemeToggle from "@/components/theme/ThemeToggle";

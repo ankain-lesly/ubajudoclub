@@ -26,7 +26,7 @@ const SchedulePreview = () => (
 
       <div className="mt-12 divide-y divide-ink/12 border-y border-ink/12">
         {WEEK.map((session, i) => (
-          <Reveal key={session.day} delay={i * 0.05}>
+          <Reveal key={i} delay={i * 0.05}>
             <div className="group relative grid grid-cols-[auto_1fr] items-baseline gap-x-6 gap-y-2 py-6 md:grid-cols-[110px_1fr_1fr_auto] md:items-center">
               <span className="pointer-events-none absolute inset-x-[-1rem] inset-y-0 -z-0 rounded-md bg-primary/[0.055] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
               <p className="relative flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.24em] text-muted-foreground">

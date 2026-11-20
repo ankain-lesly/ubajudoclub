@@ -6,6 +6,7 @@ import SectionHeading from "@/components/visual/SectionHeading";
 import Aura from "@/components/visual/Aura";
 import SectionBackdrop from "@/components/visual/SectionBackdrop";
 import { beltFor } from "@/lib/data/club";
+import BeltBar from "@/components/visual/BeltBar";
 
 interface TurnoutPanelProps {
   stats: PublicStats | null;
@@ -113,10 +114,7 @@ const TurnoutPanel = ({ stats }: TurnoutPanelProps) => {
                   <span
                     key={belt.rank}
                     className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.1em] text-band-foreground/55">
-                    <span
-                      className="h-2 w-2 rounded-full"
-                      style={{ backgroundColor: beltFor(belt.rank).color }}
-                    />
+                    <BeltBar rank={belt.rank} className="h-3.5 w-auto" />
                     {belt.rank} {belt.count}
                   </span>
                 ))}

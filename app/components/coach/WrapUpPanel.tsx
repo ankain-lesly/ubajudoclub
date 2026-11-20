@@ -294,7 +294,7 @@ const WrapUpPanel = ({
                     </span>
                   </div>
                   <div className="mt-2 flex items-center gap-2">
-                    <BeltBar rank={member.belt_rank} className="h-1.5 w-8" />
+                    <BeltBar rank={member.belt_rank} className="h-4 w-auto" />
                     <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">
                       {beltFor(member.belt_rank).kyu}
                     </span>
@@ -325,11 +325,8 @@ const WrapUpPanel = ({
           {belts.map((belt) => (
             <span
               key={belt.rank}
-              className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
-              <span
-                className="h-2 w-2 rounded-full"
-                style={{ backgroundColor: beltFor(belt.rank).color }}
-              />
+              className="flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+              <BeltBar rank={belt.rank} className="h-3.5 w-auto" />
               {belt.rank} {belt.count}
             </span>
           ))}

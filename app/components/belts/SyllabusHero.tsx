@@ -2,6 +2,7 @@ import { Link } from "react-router";
 import { ArrowLeft, Clock, ShieldCheck, Target, Award, ArrowRight } from "lucide-react";
 import type { ResolvedBeltView } from "@/lib/types/syllabus";
 import KyuDanSpine from "./KyuDanSpine";
+import BeltBar from "@/components/visual/BeltBar";
 import Reveal from "@/components/visual/Reveal";
 import Aura from "@/components/visual/Aura";
 import RingField from "@/components/visual/RingField";
@@ -37,10 +38,7 @@ export default function SyllabusHero({ view }: SyllabusHeroProps) {
         <div className="mt-8 grid gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
           <Reveal delay={0.04}>
             <div className="flex items-center gap-3">
-              <span
-                className="h-3 w-10 rounded-full shadow-sm ring-1 ring-ink/20"
-                style={{ backgroundColor: view.color }}
-              />
+              <BeltBar rank={view.rankName} className="h-7 w-auto" />
               <span className="font-mono text-[11px] text-primary font-semibold">
                 {view.kyuTitle}
               </span>

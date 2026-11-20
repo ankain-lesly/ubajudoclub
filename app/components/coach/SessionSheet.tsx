@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Member, TrainingSession } from "@/lib/types";
+import BeltBar from "@/components/visual/BeltBar";
 import { SessionMediaPanel } from "./SessionMediaPanel";
 
 interface SessionSheetProps {
@@ -249,7 +250,8 @@ export function SessionSheet({
                         className="rounded border-ink/20 text-primary focus:ring-primary h-3.5 w-3.5"
                       />
                       <span className="font-medium flex-1">{m.full_name}</span>
-                      <span className="font-mono text-[10px] text-muted-foreground">
+                      <span className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground">
+                        <BeltBar rank={m.belt_rank} className="h-3.5 w-auto" />
                         {m.belt_rank}
                       </span>
                     </label>

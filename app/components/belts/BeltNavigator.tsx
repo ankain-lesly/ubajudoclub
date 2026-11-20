@@ -2,6 +2,7 @@ import { Link } from "react-router";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import type { BeltSlug } from "@/lib/types/syllabus";
 import { getBeltView } from "@/lib/data/syllabus";
+import BeltBar from "@/components/visual/BeltBar";
 import Reveal from "@/components/visual/Reveal";
 
 interface BeltNavigatorProps {
@@ -35,10 +36,7 @@ export default function BeltNavigator({
                     Previous Grade
                   </p>
                   <div className="mt-1 flex items-center gap-2">
-                    <span
-                      className="h-2 w-5 rounded-full"
-                      style={{ backgroundColor: prevBelt.color }}
-                    />
+                    <BeltBar rank={prevBelt.rankName} className="h-4.5 w-auto" />
                     <span className="font-display text-base font-semibold text-foreground">
                       {prevBelt.rankName}
                     </span>
@@ -61,10 +59,7 @@ export default function BeltNavigator({
                     <span className="font-display text-base font-semibold text-foreground">
                       {nextBelt.rankName}
                     </span>
-                    <span
-                      className="h-2 w-5 rounded-full"
-                      style={{ backgroundColor: nextBelt.color }}
-                    />
+                    <BeltBar rank={nextBelt.rankName} className="h-4.5 w-auto" />
                   </div>
                 </div>
                 <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-secondary/60 text-foreground transition-transform group-hover:translate-x-1">

@@ -6,6 +6,7 @@ import Aura from "@/components/visual/Aura";
 import RingField from "@/components/visual/RingField";
 import SpotlightCard from "@/components/visual/SpotlightCard";
 import BeltLadder from "@/components/home/BeltLadder";
+import BeltBar from "@/components/visual/BeltBar";
 import { BELTS } from "@/lib/data/club";
 
 const steps = [
@@ -111,11 +112,8 @@ const Belts = () => (
                   <td className="whitespace-nowrap px-5 py-4">
                     <Link
                       to={`/belts/${belt.rank.toLowerCase()}`}
-                      className="flex items-center gap-2.5 font-medium transition-colors group-hover:text-primary">
-                      <span
-                        className="h-1.5 w-6 rounded-full"
-                        style={{ backgroundColor: belt.color }}
-                      />
+                      className="flex items-center gap-3 font-medium transition-colors group-hover:text-primary">
+                      <BeltBar rank={belt.rank} className="h-5 w-auto" />
                       <span>{belt.rank}</span>
                       <ArrowUpRight className="h-3.5 w-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
                     </Link>

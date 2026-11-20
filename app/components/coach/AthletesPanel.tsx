@@ -125,8 +125,10 @@ export default function AthletesPanel({ members, onPromote, onAdd, onEdit }: Ath
                     </p>
                   </td>
                   <td className="whitespace-nowrap px-5 py-4">
-                    <BeltBar rank={member.belt_rank} className="mr-2" />
-                    <span className="text-[11.5px] text-muted-foreground">{member.belt_rank}</span>
+                    <div className="flex items-center gap-2">
+                      <BeltBar rank={member.belt_rank} className="h-4.5 w-auto" />
+                      <span className="text-[11.5px] text-muted-foreground">{member.belt_rank}</span>
+                    </div>
                   </td>
                   <td className="whitespace-nowrap px-5 py-4">
                     <span

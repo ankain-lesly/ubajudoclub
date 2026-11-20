@@ -3,6 +3,7 @@ import { ChevronDown, History } from "lucide-react";
 import type { Technique, ResolvedBeltView } from "@/lib/types/syllabus";
 import TechniqueCard from "./TechniqueCard";
 import TechniqueSheet from "./TechniqueSheet";
+import BeltBar from "@/components/visual/BeltBar";
 import Reveal from "@/components/visual/Reveal";
 import { cn } from "@/lib/utils";
 
@@ -275,7 +276,8 @@ export default function TechniqueGrid({
                       <div
                         key={item.id}
                         className="rounded-lg bg-card p-3 border border-ink/10 text-[12px]">
-                        <span className="font-mono text-[8.5px] text-primary font-medium">
+                        <span className="flex items-center gap-1.5 font-mono text-[8.5px] text-primary font-medium">
+                          <BeltBar rank={item.beltRank} className="h-3 w-auto" />
                           {item.beltRank} Belt
                         </span>
                         <p className="font-semibold text-foreground mt-0.5">
@@ -299,7 +301,8 @@ export default function TechniqueGrid({
                         <div
                           key={item.id}
                           className="rounded-lg bg-card p-3 border border-ink/10 text-[12px]">
-                          <span className="font-mono text-[8.5px] text-primary font-medium">
+                          <span className="flex items-center gap-1.5 font-mono text-[8.5px] text-primary font-medium">
+                            <BeltBar rank={item.beltRank} className="h-3 w-auto" />
                             {item.beltRank} Belt
                           </span>
                           <p className="font-semibold text-foreground mt-0.5">

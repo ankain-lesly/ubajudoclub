@@ -39,6 +39,10 @@ export const links: Route.LinksFunction = () => [
 ];
 
 export function meta(): Route.MetaDescriptors {
+
+  const content =
+    "Judo at UBa Campus Amphi 100: weekly sessions with Monday morning start at 8:00 AM, the Kyu–Dan pathway, and anonymised club turnout.";
+
   return [
     { title: TITLE },
     { name: "description", content: DESCRIPTION },
@@ -53,6 +57,15 @@ export function meta(): Route.MetaDescriptors {
     { property: "og:type", content: "website" },
     { property: "og:site_name", content: "UBa Judo Club" },
     { name: "twitter:card", content: "summary_large_image" },
+    { property: "og:image", content: "/images/ubajudo-banner.jpg" },
+    { property: "og:image:width", content: "1200" },
+    { property: "og:image:height", content: "630" },
+    { property: "og:image:type", content: "image/jpeg" },
+    {
+      property: "og:image:alt",
+      content,
+    },
+    { name: "twitter:image" },
   ];
 }
 
@@ -61,7 +74,11 @@ const THEME_SCRIPT = `(function(){try{var s=localStorage.getItem('uba-theme');va
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark" style={{ colorScheme: "dark" }} suppressHydrationWarning>
+    <html
+      lang="en"
+      className="dark"
+      style={{ colorScheme: "dark" }}
+      suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />

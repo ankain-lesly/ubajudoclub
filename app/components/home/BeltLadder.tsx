@@ -5,6 +5,7 @@ import Reveal from "@/components/visual/Reveal";
 import SectionHeading from "@/components/visual/SectionHeading";
 import SectionBackdrop from "@/components/visual/SectionBackdrop";
 import { BELTS } from "@/lib/data/club";
+import BeltBar from "@/components/visual/BeltBar";
 
 const BeltLadder = () => (
   <section className="relative mx-auto max-w-6xl overflow-hidden px-5 py-20 lg:px-8 lg:py-28">
@@ -31,18 +32,7 @@ const BeltLadder = () => (
                 <span className="font-display text-lg font-semibold tracking-[-0.01em] transition-colors group-hover:text-primary">
                   {belt.rank}
                 </span>
-                <motion.span
-                  initial={{ width: 0 }}
-                  whileInView={{ width: 36 }}
-                  viewport={{ once: true, margin: "-60px" }}
-                  transition={{
-                    duration: 0.85,
-                    delay: 0.12 + i * 0.05,
-                    ease: [0.16, 1, 0.3, 1],
-                  }}
-                  className="h-1.5 rounded-full"
-                  style={{ backgroundColor: belt.color }}
-                />
+                <BeltBar rank={belt.rank} className="h-6 w-auto" />
               </div>
               <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
                 {belt.kyu}

@@ -126,9 +126,9 @@ export default function Join() {
             </div>
 
             <div className="space-y-2.5">
-              {WEEK.map((session) => (
+              {WEEK.map((session, i) => (
                 <div
-                  key={session.day}
+                  key={i}
                   className="flex items-baseline justify-between text-xs"
                 >
                   <span className="font-medium text-foreground">{session.day}</span>

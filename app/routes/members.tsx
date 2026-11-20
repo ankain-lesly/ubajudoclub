@@ -11,6 +11,7 @@ import Aura from "@/components/visual/Aura";
 import RingField from "@/components/visual/RingField";
 import Reveal from "@/components/visual/Reveal";
 import SectionBackdrop from "@/components/visual/SectionBackdrop";
+import BeltBar from "@/components/visual/BeltBar";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import type { Route } from "./+types/members";
@@ -207,11 +208,8 @@ const Members = ({ loaderData }: Route.ComponentProps) => {
                     <div>
                       {/* Top Rank Badge */}
                       <div className="flex items-center justify-between">
-                        <span className="flex items-center gap-2 rounded-full border border-ink/10 bg-secondary/60 px-2.5 py-0.5 font-mono text-[9px] uppercase tracking-[0.14em]">
-                          <span
-                            className="h-2 w-2 rounded-full"
-                            style={{ backgroundColor: beltInfo.color }}
-                          />
+                        <span className="flex items-center gap-2 rounded-full border border-ink/10 bg-secondary/60 px-2.5 py-1 font-mono text-[9px] uppercase tracking-[0.14em]">
+                          <BeltBar rank={member.belt_rank} className="h-3.5 w-auto" />
                           {member.belt_rank} Belt
                         </span>
 

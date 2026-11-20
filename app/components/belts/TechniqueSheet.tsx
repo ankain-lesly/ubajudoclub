@@ -28,7 +28,7 @@ export default function TechniqueSheet({
         className="w-full sm:max-w-lg overflow-y-auto p-6 sm:p-8">
         <SheetHeader className="text-left border-b border-ink/10 pb-5 px-0">
           <div className="flex items-center gap-2">
-            <span className="rounded-full bg-secondary/80 px-2.5 py-0.5 font-mono text-[9.5px] text-secondary-foreground font-medium">
+            <span className="rounded-full bg-secondary/80 px-2.5 py-0.5 font-mono text-[9.5px] text-secondary-foreground font-medium uppercase">
               {technique.group}
             </span>
             {technique.gokyoGroup && (

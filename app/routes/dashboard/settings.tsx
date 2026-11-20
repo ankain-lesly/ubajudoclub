@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Modal from "@/components/coach/Modal";
+import BeltBar from "@/components/visual/BeltBar";
 import {
   useUserProfileQuery,
   useUpdateProfileMutation,
@@ -542,7 +543,8 @@ export default function DashboardSettingsRoute() {
                                 </span>
                               )}
                               {user.linkedMember && (
-                                <span className="rounded bg-secondary px-1.5 py-0.2 font-mono text-[9px] text-muted-foreground">
+                                <span className="inline-flex items-center gap-1.5 rounded bg-secondary px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">
+                                  <BeltBar rank={user.linkedMember.belt_rank} className="h-3 w-auto" />
                                   {user.linkedMember.belt_rank} Belt
                                 </span>
                               )}
@@ -667,7 +669,8 @@ export default function DashboardSettingsRoute() {
                       {selectedAthlete.full_name}
                     </p>
                     <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground">
-                      <span className="rounded bg-primary/10 px-1.5 py-0.2 font-mono text-primary font-semibold">
+                      <span className="inline-flex items-center gap-1.5 rounded bg-primary/10 px-1.5 py-0.5 font-mono text-primary font-semibold">
+                        <BeltBar rank={selectedAthlete.belt_rank} className="h-3 w-auto" />
                         {selectedAthlete.belt_rank} Belt
                       </span>
                       {selectedAthlete.matricule && (
@@ -756,7 +759,8 @@ export default function DashboardSettingsRoute() {
                                 )}
                               </div>
                               <div className="flex items-center gap-1.5 shrink-0">
-                                <span className="rounded bg-secondary px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">
+                                <span className="inline-flex items-center gap-1.5 rounded bg-secondary px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">
+                                  <BeltBar rank={member.belt_rank} className="h-3 w-auto" />
                                   {member.belt_rank}
                                 </span>
                                 {member.matricule && (
