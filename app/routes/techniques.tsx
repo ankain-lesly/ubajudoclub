@@ -1,26 +1,21 @@
-import { useState, useMemo, useEffect } from "react";
-import { Link, useSearchParams } from "react-router";
+import { useState, useMemo } from "react";
+import { useSearchParams } from "react-router";
 import {
   Search,
   X,
-  SlidersHorizontal,
   LayoutGrid,
   List,
-  Sparkles,
   BookOpen,
-  ShieldAlert,
   ArrowUpDown,
   Filter,
   RotateCcw,
-  Award,
 } from "lucide-react";
-import SectionHeading from "@/components/visual/SectionHeading";
 import Reveal from "@/components/visual/Reveal";
 import Aura from "@/components/visual/Aura";
 import RingField from "@/components/visual/RingField";
 import HeroBackdrop from "@/components/visual/HeroBackdrop";
 import BeltBar from "@/components/visual/BeltBar";
-import heroTechniqueDemo from "@/assets/images/judo-technique-demo.webp";
+import heroTechniqueDemo from "@/assets/images/judo-practice.jpg";
 import TechniqueCard from "@/components/belts/TechniqueCard";
 import TechniqueSheet from "@/components/belts/TechniqueSheet";
 import { getAllTechniques, type EnrichedTechnique } from "@/lib/data/syllabus";
