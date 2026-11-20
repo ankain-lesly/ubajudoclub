@@ -27,6 +27,7 @@ const PRIMARY_LINKS = [
 
 const DOJO_MENU_ITEMS = [
   { to: "/sessions", label: "Sessions", desc: "Mat syllabus & attendee logs" },
+  { to: "/techniques", label: "Techniques", desc: "Kodokan Gokyo & Ne-waza archive" },
   { to: "/members", label: "Our Team", desc: "Registered judoka & grades" },
   { to: "/belts", label: "Belts & Grades", desc: "Kyu–Dan promotion pathway" },
   { to: "/gallery", label: "Photo Gallery", desc: "Visual mat captures" },

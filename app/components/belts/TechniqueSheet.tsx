@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import {
   Sheet,
   SheetContent,
@@ -5,19 +6,27 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/ui/sheet";
-import { AlertTriangle, CheckCircle2, ShieldAlert } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ShieldAlert, ArrowUpRight } from "lucide-react";
+import BeltBar from "@/components/visual/BeltBar";
 import type { Technique } from "@/lib/types/syllabus";
+import type { Rank } from "@/lib/types";
 
 interface TechniqueSheetProps {
   technique: Technique | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  beltRank?: Rank;
+  beltSlug?: string;
+  beltColor?: string;
 }
 
 export default function TechniqueSheet({
   technique,
   open,
   onOpenChange,
+  beltRank,
+  beltSlug,
+  beltColor,
 }: TechniqueSheetProps) {
   if (!technique) return null;
 
@@ -152,6 +161,28 @@ export default function TechniqueSheet({
             <p className="border-l-2 border-primary/50 pl-3 font-mono text-[11.5px] leading-relaxed text-muted-foreground italic">
               {technique.details.coachingNote}
             </p>
+          )}
+
+          {/* Syllabus Belt Link */}
+          {beltSlug && beltRank && (
+            <div className="pt-4 border-t border-ink/10 flex items-center justify-between text-xs text-muted-foreground">
+              <span className="flex items-center gap-2">
+                <BeltBar
+                  rank={beltRank}
+                  color={beltColor}
+                  className="h-4.5 w-auto"
+                  title={`${beltRank} Belt`}
+                />
+                <span>Exam grade: <strong className="text-foreground">{beltRank} Belt</strong></span>
+              </span>
+              <Link
+                to={`/belts/${beltSlug}`}
+                className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
+              >
+                <span>View {beltRank} Syllabus</span>
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </Link>
+            </div>
           )}
         </div>
       </SheetContent>

@@ -1,4 +1,5 @@
 import { BELTS, beltFor } from "@/lib/data/club";
+import type { Rank } from "@/lib/types";
 import type {
   BeltSlug,
   BeltProgram,
@@ -180,4 +181,66 @@ export function getBeltView(slug: string): ResolvedBeltView | null {
     cumulativeReviewThrows,
     cumulativeReviewGroundwork,
   };
+}
+
+export interface EnrichedTechnique extends Technique {
+  beltRank: Rank;
+  beltSlug: BeltSlug;
+  beltColor: string;
+  primaryCategory: "throws" | "groundwork" | "ukemi";
+}
+
+/**
+ * Returns all techniques in the registry enriched with their minimum syllabus belt rank,
+ * slug, color swatch, and high-level category (throws, groundwork, ukemi).
+ */
+export function getAllTechniques(): EnrichedTechnique[] {
+  const techniqueBeltMap = new Map<string, { rank: Rank; slug: BeltSlug; color: string }>();
+
+  ORDERED_SLUGS.forEach((slug, idx) => {
+    const p = BELT_PROGRAMS[slug];
+    const belt = BELTS[idx];
+    const allIds = [
+      ...(p.learn.throws || []),
+      ...(p.learn.groundwork || []),
+      ...(p.learn.ukemi || []),
+      ...(p.learn.counters?.map((c) => c.counter) || []),
+      ...(p.learn.combinations?.map((c) => c.to) || []),
+    ];
+    allIds.forEach((id) => {
+      if (!techniqueBeltMap.has(id)) {
+        techniqueBeltMap.set(id, { rank: belt.rank, slug, color: belt.color });
+      }
+    });
+  });
+
+  return Object.values(TECHNIQUES_REGISTRY).map((tech) => {
+    const beltInfo =
+      techniqueBeltMap.get(tech.id) || {
+        rank: "Brown" as Rank,
+        slug: "brown" as BeltSlug,
+        color: "#6A4126",
+      };
+
+    let primaryCategory: "throws" | "groundwork" | "ukemi" = "throws";
+    if (tech.group === "ukemi") {
+      primaryCategory = "ukemi";
+    } else if (
+      tech.group === "osaekomi-waza" ||
+      tech.group === "shime-waza" ||
+      tech.group === "kansetsu-waza" ||
+      tech.group === "turnovers" ||
+      tech.group === "escapes"
+    ) {
+      primaryCategory = "groundwork";
+    }
+
+    return {
+      ...tech,
+      beltRank: beltInfo.rank,
+      beltSlug: beltInfo.slug,
+      beltColor: beltInfo.color,
+      primaryCategory,
+    };
+  });
 }

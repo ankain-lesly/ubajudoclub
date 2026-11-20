@@ -56,6 +56,7 @@ const SiteFooter = () => (
               { to: "/calendar", label: "Calendar" },
               { to: "/members", label: "Members Directory" },
               { to: "/gallery", label: "Gallery" },
+              { to: "/techniques", label: "Techniques library" },
               { to: "/belts", label: "Belt pathway" },
               { to: "/join", label: "Join the mat" },
               { to: "/login", label: "Coach console" },

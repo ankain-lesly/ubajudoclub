@@ -18,6 +18,7 @@ export default [
     route("members", "routes/members.tsx"),
     route("belts", "routes/belts.tsx"),
     route("belts/:color", "routes/belts.$color.tsx"),
+    route("techniques", "routes/techniques.tsx"),
     route("gallery", "routes/gallery.tsx"),
     route("join", "routes/join.tsx"),
   ]),
