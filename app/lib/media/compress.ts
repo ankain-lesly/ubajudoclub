@@ -1,155 +1,162 @@
 /**
- * Client-Side Image Compression Utility
+ * Client-Side Image Compression Utility (Sole Compression Medium)
  *
- * Uses HTML5 Canvas / createImageBitmap to downscale high-resolution phone/camera photos
- * and compress them to WebP/JPEG before uploading over the network.
+ * Uses `react-image-file-resizer` to downscale and compress photos before upload
+ * while strictly preserving original aspect ratio and orientation across
+ * portrait (3:4, 9:16), landscape (4:3, 16:9), and square (1:1) images.
  *
- * - Drops 10–25 MB iPhone/Android photos down to ~300–800 KB in 100–200ms.
- * - Caps max dimension at 2048px (high-res retina standard).
+ * Symmetric 1600x1600 bounding box @ quality 85:
+ * - Landscape 4:3  (4032x3024) -> 1600x1200
+ * - Landscape 16:9 (3840x2160) -> 1600x900
+ * - Portrait  3:4  (3024x4032) -> 1200x1600
+ * - Portrait  9:16 (2268x4032) -> 900x1600
  * - Leaves videos, SVGs, and animated GIFs untouched.
  */
 
-export interface CompressionOptions {
+export interface ResizeOptions {
   maxWidth?: number;
   maxHeight?: number;
-  quality?: number; // 0.0 to 1.0
-  mimeType?: "image/webp" | "image/jpeg";
+  format?: "JPEG" | "PNG" | "WEBP";
+  quality?: number; // 0 to 100
+}
+
+const DEFAULT_MAX_WIDTH = 1600;
+const DEFAULT_MAX_HEIGHT = 1600;
+const DEFAULT_QUALITY = 85;
+const DEFAULT_FORMAT = "JPEG" as const;
+
+function shouldSkipCompression(file: File): boolean {
+  if (!file || !file.type.startsWith("image/")) {
+    return true;
+  }
+  const lowerName = file.name.toLowerCase();
+  const isSvg = file.type === "image/svg+xml" || lowerName.endsWith(".svg");
+  const isGif = file.type === "image/gif" || lowerName.endsWith(".gif");
+  return isSvg || isGif;
 }
 
 /**
- * Compresses an image File in the browser prior to network transmission.
- * Returns the original file if running on the server (SSR), if not an image,
- * or if compression fails.
+ * Resizes and compresses one or more image files using `react-image-file-resizer`.
+ * Preserves aspect ratio for both portrait and landscape images without distortion.
+ * Returns a single `File` when given a single `File`, or a `FileList` for arrays.
+ */
+export async function handleImageResizing(
+  files: File | File[] | null,
+  settings?: Omit<ResizeOptions, "outputType">
+): Promise<File | FileList> {
+  // SSR guard
+  if (typeof window === "undefined") {
+    if (!files) return [] as unknown as FileList;
+    return Array.isArray(files) ? (files as unknown as FileList) : files;
+  }
+
+  if (!files) {
+    return new DataTransfer().files;
+  }
+
+  const fileArray = Array.isArray(files) ? Array.from(files) : [files];
+  if (fileArray.length === 0) {
+    return new DataTransfer().files;
+  }
+
+  const maxWidth = settings?.maxWidth ?? DEFAULT_MAX_WIDTH;
+  const maxHeight = settings?.maxHeight ?? DEFAULT_MAX_HEIGHT;
+  const quality = settings?.quality ?? DEFAULT_QUALITY;
+
+  // Dynamic import keeps `react-image-file-resizer` (browser/FileReader CJS) SSR-safe
+  const resizerModule = await import("react-image-file-resizer");
+  const Resizer =
+    (resizerModule.default as unknown as { default?: typeof resizerModule.default })
+      ?.default ?? resizerModule.default;
+
+  const processedFiles: File[] = [];
+
+  for (const file of fileArray) {
+    if (shouldSkipCompression(file)) {
+      processedFiles.push(file);
+      continue;
+    }
+
+    const format =
+      settings?.format ??
+      (file.type === "image/png" ? "PNG" : DEFAULT_FORMAT);
+
+    try {
+      const resizedBlob = await new Promise<Blob>((resolve, reject) => {
+        try {
+          Resizer.imageFileResizer(
+            file,
+            maxWidth,
+            maxHeight,
+            format,
+            quality,
+            0,
+            (resized) => {
+              if (resized instanceof Blob) {
+                resolve(resized);
+              } else {
+                reject(new Error("Resizer did not return a Blob"));
+              }
+            },
+            "blob"
+          );
+        } catch (err) {
+          reject(err);
+        }
+      });
+
+      // Keep original if compression somehow produced a larger payload
+      if (resizedBlob.size >= file.size) {
+        processedFiles.push(file);
+        continue;
+      }
+
+      const ext =
+        format === "PNG" ? "png" : format === "WEBP" ? "webp" : "jpg";
+      const baseName = file.name.replace(/\.[^/.]+$/, "");
+      const outputName = `${baseName}.${ext}`;
+
+      const compressedFile = new File([resizedBlob], outputName, {
+        type: resizedBlob.type || `image/${ext === "jpg" ? "jpeg" : ext}`,
+        lastModified: file.lastModified,
+      });
+
+      const savedPercent = Math.round(
+        (1 - compressedFile.size / file.size) * 100
+      );
+      console.info(
+        `[PreUploadCompression] "${file.name}": ${(file.size / 1024 / 1024).toFixed(2)} MB -> ${(
+          compressedFile.size /
+          1024 /
+          1024
+        ).toFixed(2)} MB (${savedPercent}% saved)`
+      );
+
+      processedFiles.push(compressedFile);
+    } catch (error) {
+      console.error("[PreUploadCompression] Error resizing image:", file.name, error);
+      // Fall back to original file at the same index so batches never misalign
+      processedFiles.push(file);
+    }
+  }
+
+  const dataTransfer = new DataTransfer();
+  processedFiles.forEach((f) => dataTransfer.items.add(f));
+
+  return Array.isArray(files) ? dataTransfer.files : dataTransfer.files[0];
+}
+
+/**
+ * Convenience wrapper for single-file upload pipelines (`cloudinary.ts`, `storage.ts`).
  */
 export async function compressImageBeforeUpload(
   file: File,
-  options: CompressionOptions = {}
+  options?: ResizeOptions
 ): Promise<File> {
-  // SSR guard or non-image files
-  if (typeof window === "undefined" || !file || !file.type.startsWith("image/")) {
+  if (typeof window === "undefined" || shouldSkipCompression(file)) {
     return file;
   }
 
-  // Do not recompress vector graphics or animated GIFs
-  const isSvg = file.type === "image/svg+xml" || file.name.toLowerCase().endsWith(".svg");
-  const isGif = file.type === "image/gif" || file.name.toLowerCase().endsWith(".gif");
-  if (isSvg || isGif) {
-    return file;
-  }
-
-  const maxWidth = options.maxWidth ?? 2048;
-  const maxHeight = options.maxHeight ?? 2048;
-  const quality = options.quality ?? 0.82;
-  const mimeType = options.mimeType ?? "image/jpeg";
-
-  try {
-    let width = 0;
-    let height = 0;
-    let bitmap: ImageBitmap | null = null;
-    let htmlImg: HTMLImageElement | null = null;
-
-    if (typeof createImageBitmap !== "undefined") {
-      try {
-        bitmap = await createImageBitmap(file);
-        width = bitmap.width;
-        height = bitmap.height;
-      } catch {
-        bitmap = null;
-      }
-    }
-
-    if (!bitmap) {
-      htmlImg = await loadHtmlImage(file);
-      width = htmlImg.naturalWidth || htmlImg.width;
-      height = htmlImg.naturalHeight || htmlImg.height;
-    }
-
-    // If image is already smaller than 500KB and within target dimensions, skip compression
-    if (file.size < 500 * 1024 && width <= maxWidth && height <= maxHeight) {
-      if (bitmap) bitmap.close();
-      return file;
-    }
-
-    // Calculate aspect-ratio scale
-    let scale = 1;
-    if (width > maxWidth || height > maxHeight) {
-      scale = Math.min(maxWidth / width, maxHeight / height);
-    }
-
-    const targetWidth = Math.max(1, Math.round(width * scale));
-    const targetHeight = Math.max(1, Math.round(height * scale));
-
-    const canvas = document.createElement("canvas");
-    canvas.width = targetWidth;
-    canvas.height = targetHeight;
-
-    const ctx = canvas.getContext("2d");
-    if (!ctx) {
-      if (bitmap) bitmap.close();
-      return file;
-    }
-
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
-
-    if (bitmap) {
-      ctx.drawImage(bitmap, 0, 0, targetWidth, targetHeight);
-      bitmap.close();
-    } else if (htmlImg) {
-      ctx.drawImage(htmlImg, 0, 0, targetWidth, targetHeight);
-    }
-
-    const blob = await new Promise<Blob | null>((resolve) => {
-      canvas.toBlob(resolve, mimeType, quality);
-    });
-
-    if (!blob) {
-      return file;
-    }
-
-    // If compression somehow produced a larger file, keep the original
-    if (blob.size >= file.size) {
-      return file;
-    }
-
-    // Format new file name with matching extension
-    const baseName = file.name.replace(/\.[^/.]+$/, "");
-    const ext = mimeType === "image/webp" ? "webp" : "jpg";
-    const compressedFileName = `${baseName}.${ext}`;
-
-    const compressedFile = new File([blob], compressedFileName, {
-      type: mimeType,
-      lastModified: Date.now(),
-    });
-
-    const savedPercent = Math.round((1 - compressedFile.size / file.size) * 100);
-    console.info(
-      `[PreUploadCompression] "${file.name}": ${(file.size / 1024 / 1024).toFixed(2)} MB -> ${(
-        compressedFile.size /
-        1024 /
-        1024
-      ).toFixed(2)} MB (${savedPercent}% saved)`
-    );
-
-    return compressedFile;
-  } catch (err) {
-    console.warn("[PreUploadCompression] Failed, proceeding with original file:", err);
-    return file;
-  }
-}
-
-function loadHtmlImage(file: File): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    const url = URL.createObjectURL(file);
-    img.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve(img);
-    };
-    img.onerror = (e) => {
-      URL.revokeObjectURL(url);
-      reject(e);
-    };
-    img.src = url;
-  });
+  const result = await handleImageResizing(file, options);
+  return result instanceof File ? result : file;
 }

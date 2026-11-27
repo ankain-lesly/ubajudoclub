@@ -24,6 +24,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Member, TrainingSession } from "@/lib/types";
 import BeltBar from "@/components/visual/BeltBar";
+import { handleImageResizing } from "@/lib/media/compress";
 import { SessionMediaPanel } from "./SessionMediaPanel";
 
 interface SessionSheetProps {
@@ -137,13 +138,20 @@ export function SessionSheet({
       const fullStartTime = new Date(`${dateStr}T${startTimeStr}:00`).toISOString();
       const fullEndTime = endTimeStr ? new Date(`${dateStr}T${endTimeStr}:00`).toISOString() : null;
 
+      let compressedStagedFiles: File[] | undefined;
+      if (!isEditing && stagedFiles.length > 0) {
+        const resized = await handleImageResizing(stagedFiles);
+        compressedStagedFiles =
+          resized instanceof File ? [resized] : Array.from(resized);
+      }
+
       await onSave({
         start_time: fullStartTime,
         end_time: fullEndTime,
         focus: focus.trim(),
         notes: notes.trim(),
         coordinatorIds: selectedCoordinators,
-        stagedFiles: !isEditing ? stagedFiles : undefined,
+        stagedFiles: compressedStagedFiles,
       });
       onClose();
     } catch (err: any) {

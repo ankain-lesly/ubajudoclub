@@ -17,7 +17,7 @@ import {
   deleteSessionMedia,
   setSessionMediaCover,
 } from "@/lib/supabase/storage";
-import { isVideoUrl } from "@/lib/media/cloudinary";
+import { handleImageResizing } from "@/lib/media/compress";
 
 interface SessionMediaPanelProps {
   sessionId: string;
@@ -82,7 +82,12 @@ export function SessionMediaPanel({
     setUploadProgress({ current: 0, total: fileArray.length });
 
     try {
-      await uploadMultipleSessionMedia(sessionId, fileArray, (done, total) => {
+      // Compress images on the client before uploading to Cloudinary / Storage
+      const resized = await handleImageResizing(fileArray);
+      const filesToUpload =
+        resized instanceof File ? [resized] : Array.from(resized);
+
+      await uploadMultipleSessionMedia(sessionId, filesToUpload, (done, total) => {
         setUploadProgress({ current: done, total });
       });
 
@@ -232,24 +237,19 @@ export function SessionMediaPanel({
           }`}
         >
           {media.map((item) => {
-            const isVideo = item.media_type === "VIDEO" || isVideoUrl(item.url);
+            const isVideo = item.media_type === "VIDEO";
             const isDeleting = deletingId === item.id;
 
             return (
               <div
                 key={item.id}
-                className="group relative flex flex-col overflow-hidden rounded-lg border border-ink/10 bg-background shadow-xs transition-shadow hover:shadow-sm"
-              >
+                className="group relative flex flex-col overflow-hidden rounded-lg border border-ink/10 bg-background shadow-xs transition-shadow hover:shadow-sm">
                 <div className="relative aspect-video w-full overflow-hidden bg-black/5">
                   {isVideo ? (
                     <div className="relative h-full w-full bg-black">
                       <video
                         src={item.url}
-                        poster={
-                          item.thumbnail_url && !isVideoUrl(item.thumbnail_url)
-                            ? item.thumbnail_url
-                            : undefined
-                        }
+                        // poster={defaultVideoThumbnail}
                         controls
                         preload="metadata"
                         playsInline
@@ -258,7 +258,7 @@ export function SessionMediaPanel({
                     </div>
                   ) : (
                     <img
-                      src={item.thumbnail_url || item.url}
+                      src={item.url}
                       alt={item.caption || "Session photo"}
                       className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                       loading="lazy"
@@ -287,12 +287,17 @@ export function SessionMediaPanel({
                           ? "bg-amber-400 text-black cursor-default"
                           : "bg-black/70 text-white hover:bg-amber-400 hover:text-black"
                       }`}
-                      title={item.is_cover ? "Current cover image" : "Set as cover image"}
-                    >
+                      title={
+                        item.is_cover
+                          ? "Current cover image"
+                          : "Set as cover image"
+                      }>
                       {settingCoverId === item.id ? (
                         <Loader2 className="h-3 w-3 animate-spin" />
                       ) : (
-                        <Star className={`h-3 w-3 ${item.is_cover ? "fill-black" : ""}`} />
+                        <Star
+                          className={`h-3 w-3 ${item.is_cover ? "fill-black" : ""}`}
+                        />
                       )}
                     </button>
                     <a
@@ -300,8 +305,7 @@ export function SessionMediaPanel({
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex h-6 w-6 items-center justify-center rounded-md bg-black/70 text-white backdrop-blur-xs hover:bg-black"
-                      title="Open full size"
-                    >
+                      title="Open full size">
                       <ExternalLink className="h-3 w-3" />
                     </a>
                     <button
@@ -312,8 +316,7 @@ export function SessionMediaPanel({
                         handleDelete(item);
                       }}
                       className="flex h-6 w-6 items-center justify-center rounded-md bg-destructive/90 text-white backdrop-blur-xs hover:bg-destructive"
-                      title="Delete media"
-                    >
+                      title="Delete media">
                       {isDeleting ? (
                         <Loader2 className="h-3 w-3 animate-spin" />
                       ) : (
@@ -330,7 +333,9 @@ export function SessionMediaPanel({
 
                 {item.caption && (
                   <div className="p-2">
-                    <p className="line-clamp-1 text-[11px] text-foreground" title={item.caption}>
+                    <p
+                      className="line-clamp-1 text-[11px] text-foreground"
+                      title={item.caption}>
                       {item.caption}
                     </p>
                   </div>

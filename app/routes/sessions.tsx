@@ -19,20 +19,17 @@ import Reveal from "@/components/visual/Reveal";
 import HeroBackdrop from "@/components/visual/HeroBackdrop";
 import heroMatAction from "@/assets/images/132f87024_generated_5ca68e15.avif";
 import { cn } from "@/lib/utils";
-import { getOgImageUrl, isVideoUrl } from "@/lib/media/cloudinary";
 import { env } from "@/lib/env";
 import type { Route } from "./+types/sessions";
 
 export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
   const sessions = loaderData?.sessions || [];
   const firstSession = sessions[0];
-  const selectedMedia =
-    firstSession?.media?.find((m) => m.is_cover) ??
-    firstSession?.media?.find((m) => m.media_type === "IMAGE") ??
-    firstSession?.media?.[0];
-  const firstImage = selectedMedia
-    ? getOgImageUrl(selectedMedia.url, selectedMedia.media_type)
-    : `${env.siteUrl}/images/ubajudo-banner.jpg`;
+  const selectedImage =
+    firstSession?.media?.find((m) => m.is_cover && m.media_type !== "VIDEO") ??
+    firstSession?.media?.find((m) => m.media_type !== "VIDEO");
+  const firstImage =
+    selectedImage?.url || `${env.siteUrl}/images/ubajudo-banner.jpg`;
   const description =
     "Explore training logs, syllabus focuses, and photo captures from UBa Judo Club at UBa Campus Amphi 100.";
 
@@ -43,16 +40,9 @@ export function meta({ loaderData }: Route.MetaArgs): Route.MetaDescriptors {
     { property: "og:title", content: "Mat Sessions — UBa Judo Club" },
     { property: "og:description", content: description },
     { property: "og:type", content: "website" },
-    ...(firstImage
-      ? [
-          { property: "og:image", content: firstImage },
-          { property: "og:image:width", content: "1200" },
-          { property: "og:image:height", content: "630" },
-          { property: "og:image:type", content: "image/jpeg" },
-          { property: "og:image:alt", content: "UBa Judo Club Mat Sessions" },
-          { name: "twitter:image", content: firstImage },
-        ]
-      : []),
+    { property: "og:image", content: firstImage },
+    { property: "og:image:alt", content: "UBa Judo Club Mat Sessions" },
+    { name: "twitter:image", content: firstImage },
     { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:title", content: "Mat Sessions — UBa Judo Club" },
     { name: "twitter:description", content: description },
@@ -251,12 +241,11 @@ const Sessions = ({ loaderData }: Route.ComponentProps) => {
 
                   {/* First Media Preview Thumbnail */}
                   {firstMedia && (() => {
-                    const isVideo = firstMedia.media_type === "VIDEO" || isVideoUrl(firstMedia.url);
-                    const hasImageThumb = firstMedia.thumbnail_url && !isVideoUrl(firstMedia.thumbnail_url);
+                    const isVideo = firstMedia.media_type === "VIDEO";
 
                     return (
                       <div className="relative mt-5 overflow-hidden rounded-lg border border-ink/10 bg-band">
-                        {isVideo && !hasImageThumb ? (
+                        {isVideo ? (
                           <video
                             src={firstMedia.url}
                             preload="metadata"
@@ -266,7 +255,7 @@ const Sessions = ({ loaderData }: Route.ComponentProps) => {
                           />
                         ) : (
                           <Image
-                            src={firstMedia.thumbnail_url || firstMedia.url}
+                            src={firstMedia.url}
                             alt={firstMedia.caption || session.focus || "Session preview"}
                             className="h-36 w-full object-cover transition-transform duration-500 group-hover:scale-105"
                           />

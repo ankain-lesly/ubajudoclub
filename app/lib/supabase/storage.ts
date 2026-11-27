@@ -3,9 +3,7 @@ import type { SessionMedia } from "@/lib/types";
 import {
   isCloudinaryConfigured,
   uploadToCloudinary,
-  getMediaThumbnailUrl,
 } from "@/lib/media/cloudinary";
-import { compressImageBeforeUpload } from "@/lib/media/compress";
 
 export interface UploadSessionMediaOptions {
   sessionId: string;
@@ -14,9 +12,9 @@ export interface UploadSessionMediaOptions {
 }
 
 /**
- * Upload a single photo or video. Uses Cloudinary as the primary provider
- * with automatic image compression, video poster extraction, and responsive thumbnails,
- * falling back to Supabase storage if Cloudinary is not configured.
+ * Upload a single pre-compressed photo or video.
+ * Pure uploader: client upload components compress images via `compress.ts` before calling.
+ * Uses Cloudinary as the primary provider, falling back to Supabase storage if not configured.
  */
 export async function uploadSessionMediaFile({
   sessionId,
@@ -31,11 +29,11 @@ export async function uploadSessionMediaFile({
   const mediaType: "IMAGE" | "VIDEO" = isVideo ? "VIDEO" : "IMAGE";
   const defaultCaption = caption || file.name.replace(/\.[^/.]+$/, "");
 
-  // 1. Primary Provider: Cloudinary (optimizations, responsive thumbnails, OG cards)
+  // 1. Primary Provider: Cloudinary (pure uploader, clean URLs)
   if (isCloudinaryConfigured()) {
     try {
       const cloudRes = await uploadToCloudinary(file, {
-      folder: `ubajudo/sessions/${sessionId}`,
+        folder: `ubajudo/sessions/${sessionId}`,
         caption: defaultCaption,
       });
 
@@ -63,21 +61,17 @@ export async function uploadSessionMediaFile({
     }
   }
 
-  // console.log("Not Configured")
-  // throw new Error("Not Conifgured")
-
   // 2. Fallback Provider: Supabase Storage Bucket
-  const fileToUpload = isVideo ? file : await compressImageBeforeUpload(file);
-  const cleanBaseName = fileToUpload.name
+  const cleanBaseName = file.name
     .replace(/\.[^/.]+$/, "")
     .replace(/[^a-zA-Z0-9_-]/g, "_")
     .slice(0, 32);
-  const uploadExt = fileToUpload.name.split(".").pop()?.toLowerCase() || fileExt;
+  const uploadExt = file.name.split(".").pop()?.toLowerCase() || fileExt;
   const path = `${sessionId}/${Date.now()}_${cleanBaseName}.${uploadExt}`;
 
   const { data: uploadData, error: uploadError } = await supabase.storage
     .from("session-media")
-    .upload(path, fileToUpload, {
+    .upload(path, file, {
       cacheControl: "3600",
       upsert: false,
     });

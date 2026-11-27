@@ -1,5 +1,41 @@
 # Project TODOs & Design Considerations
 
+## Cloudinary URL Optimization Params (Archived for Review)
+> All Cloudinary URL transformation parameters were removed to keep uploaded media URLs and thumbnails clean and unmodified (relying exclusively on client-side compression in `app/lib/media/compress.ts`). Preserved below with their original sources for future review:
+
+- [ ] **Open Graph Social Card Transforms (`getOgImageUrl`)**
+  - **Source**: `app/lib/media/cloudinary.ts` (`getOgImageUrl`, lines 55–84)
+  - **Call sites**:
+    - `app/lib/media/cloudinary.ts` (`uploadToCloudinary`, line 186)
+    - `app/routes/session.$id.tsx` (`meta`, line 90)
+    - `app/routes/sessions.tsx` (`meta`, line 34)
+    - `app/routes/event.$id.tsx` (`meta`, line 27)
+  - **Removed Video URL Params**:
+    ```
+    /video/upload/c_fill,g_auto,w_1200,h_630,so_0,q_auto,f_jpg/
+    ```
+    *(with extension replaced to `.jpg`)*
+  - **Removed Image URL Params**:
+    ```
+    /image/upload/c_fill,g_auto,w_1200,h_630,q_auto,f_jpg/
+    ```
+
+- [ ] **Responsive Thumbnail Transforms (`getMediaThumbnailUrl`)**
+  - **Source**: `app/lib/media/cloudinary.ts` (`getMediaThumbnailUrl`, lines 89–114)
+  - **Call sites**:
+    - `app/lib/media/cloudinary.ts` (`uploadToCloudinary`, line 185)
+    - `app/lib/supabase/storage.ts` (`uploadSessionMediaFile`, line 48)
+  - **Removed Video URL Params**:
+    ```
+    /video/upload/c_fill,w_400,h_300,so_0,q_auto,f_jpg/
+    ```
+    *(with extension replaced to `.jpg`)*
+  - **Removed Image URL Params**:
+    ```
+    /image/upload/c_fill,w_400,h_300,q_auto,f_auto/
+    ```
+  - **Note for future review**: `c_fill,w_400,h_300` forced all portrait photos into 4:3 landscape crops without `g_auto` gravity; if re-enabled later, prefer `c_limit,w_800,h_800,q_auto:good,f_auto` to preserve portrait & landscape aspect ratios.
+
 ## Navigation & UI Placement
 - [ ] **Navigation Placement for `/sessions` and `/members`**:
   - Review and explore alternative locations/spots for placing the `/sessions` (Mat Sessions) and `/members` (Member Directory) links to keep the primary header uncluttered:
@@ -98,3 +134,17 @@ As a Product Designer and Frontend Engineer,
 - Gallery Page
 - Add a calendar view
 
+---
+
+Proceed. While you build the UI, pay attention to the following concepts:
+
+- JUDO CHARACTER STYLLED ILLUSTRACTIONS: Add references, generated vector elements of judo character styled illustration on the UI to give an impression of judo style design thereby keeping users elvolded. Analyze 
+- Generate JUDO Belt SVG  
+
+- append training stats before the description of metadata at /sessions/id
+- optimize metadata fetch to only get the media needed.
+
+
+http://localhost:5173/dashboard/sessions/58e90d1c-2ece-404f-9035-ff8bd26d93c2
+
+5UAZ6X

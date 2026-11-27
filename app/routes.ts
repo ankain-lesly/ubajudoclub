@@ -21,6 +21,7 @@ export default [
     route("techniques", "routes/techniques.tsx"),
     route("gallery", "routes/gallery.tsx"),
     route("join", "routes/join.tsx"),
+    route("test/media", "routes/test.media.tsx"),
   ]),
 
   // Coach area: guarded, dedicated full-page coach console

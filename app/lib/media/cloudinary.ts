@@ -1,11 +1,12 @@
 /**
  * Cloudinary Media Integration for UBa Judo Club
- * Handles media uploads, automatic compression, video posters,
- * and Open Graph (1200x630) social preview card generation.
+ * Pure upload helper — callers are responsible for compressing images via `compress.ts`
+ * before passing files to `uploadToCloudinary`.
+ * All Cloudinary URL optimization/transformation params are intentionally disabled
+ * so uploaded URLs remain clean and unmodified (see TODO.md for archived params).
  */
 
 import { env } from "@/lib/env";
-import { compressImageBeforeUpload } from "./compress";
 
 export interface CloudinaryUploadResponse {
   public_id: string;
@@ -16,7 +17,6 @@ export interface CloudinaryUploadResponse {
   height?: number;
   bytes?: number;
   thumbnail_url: string;
-  og_image_url: string;
 }
 
 export function getCloudinaryCloudName(): string {
@@ -47,82 +47,15 @@ export function isVideoUrl(url?: string | null): boolean {
     clean.endsWith(".mkv")
   );
 }
-
-/**
- * Transforms a Cloudinary secure_url into an Open Graph preview card (1200x630).
- * Fits WhatsApp (<300KB), Twitter, Facebook, and LinkedIn specifications.
- */
-export function getOgImageUrl(
-  url?: string | null,
-  resourceType: string = "image"
-): string {
-  if (!url) return "";
-
-  const isVideo = (resourceType || "").toUpperCase() === "VIDEO";
-
-  // If it's a Cloudinary secure_url, apply smart fill crop
-  if (url.includes("res.cloudinary.com")) {
-    if (isVideo || url.includes("/video/upload/")) {
-      // For videos, extract frame 0 (so_0) as a JPEG card
-      return url
-        .replace(
-          /\/video\/upload\/(?:v\d+\/)?/,
-          "/video/upload/c_fill,g_auto,w_1200,h_630,so_0,q_auto,f_jpg/"
-        )
-        .replace(/\.[^/.]+$/, ".jpg");
-    }
-
-    // For images, apply smart fill crop with AI gravity and JPEG output
-    return url.replace(
-      /\/image\/upload\/(?:v\d+\/)?/,
-      "/image/upload/c_fill,g_auto,w_1200,h_630,q_auto,f_jpg/"
-    );
-  }
-
-  // Fallback to original url as-is
-  return url;
-}
-
-/**
- * Builds a fast, responsive thumbnail (400x300) from a Cloudinary secure_url.
- */
-export function getMediaThumbnailUrl(
-  url?: string | null,
-  resourceType: string = "image"
-): string {
-  if (!url) return "";
-
-  const isVideo = (resourceType || "").toUpperCase() === "VIDEO";
-
-  if (url.includes("res.cloudinary.com")) {
-    if (isVideo || url.includes("/video/upload/")) {
-      return url
-        .replace(
-          /\/video\/upload\/(?:v\d+\/)?/,
-          "/video/upload/c_fill,w_400,h_300,so_0,q_auto,f_jpg/"
-        )
-        .replace(/\.[^/.]+$/, ".jpg");
-    }
-
-    return url.replace(
-      /\/image\/upload\/(?:v\d+\/)?/,
-      "/image/upload/c_fill,w_400,h_300,q_auto,f_auto/"
-    );
-  }
-
-  return url;
-}
-
 /**
  * Uploads a file directly to Cloudinary using an unsigned upload preset.
- * Automatically compresses large photos client-side before network dispatch.
+ * Pure uploader: compress images via `compress.ts` on the caller side before calling.
  */
 export async function uploadToCloudinary(
-  rawFile: File,
+  file: File,
   options?: {
     folder?: string;
     caption?: string;
-    skipCompression?: boolean;
   }
 ): Promise<CloudinaryUploadResponse> {
   const cloudName = getCloudinaryCloudName();
@@ -134,12 +67,6 @@ export async function uploadToCloudinary(
     );
   }
 
-  // Automatically compress photos in browser before uploading to save bandwidth & speed up transfer
-  const file = options?.skipCompression
-    ? rawFile
-    : await compressImageBeforeUpload(rawFile);
-
-  const isVideo = file.type.startsWith("video/");
   const endpoint = `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`;
 
   const formData = new FormData();
@@ -182,7 +109,6 @@ export async function uploadToCloudinary(
     width: data.width,
     height: data.height,
     bytes: data.bytes,
-    thumbnail_url: getMediaThumbnailUrl(data.secure_url, resourceType),
-    og_image_url: getOgImageUrl(data.secure_url, resourceType),
+    thumbnail_url: data.secure_url,
   };
 }

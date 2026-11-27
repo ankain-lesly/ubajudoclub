@@ -2,7 +2,6 @@ import { getSupabaseServerClient } from "@/lib/supabase/server";
 import { getMockMembers } from "@/lib/data/members";
 import { getMockSessions, getMockSessionById } from "@/lib/data/sessions";
 import { GALLERY } from "@/lib/data/gallery";
-import { isVideoUrl } from "@/lib/media/cloudinary";
 import type {
   ClubEvent,
   GalleryItem,
@@ -271,7 +270,7 @@ export async function getPublicGalleryItems(request?: Request): Promise<GalleryI
       const year = sessionDate
         ? sessionDate.split("-")[0]
         : new Date(m.created_at).getFullYear().toString();
-      const isVideo = m.media_type === "VIDEO" || isVideoUrl(m.url);
+      const isVideo = m.media_type === "VIDEO";
 
       const focusLower = (session?.focus || "").toLowerCase();
       let category = isVideo ? "Videos" : "Mat work";
@@ -299,7 +298,7 @@ export async function getPublicGalleryItems(request?: Request): Promise<GalleryI
       return {
         id: m.id,
         src: m.url,
-        thumbnailUrl: m.thumbnail_url || m.url,
+        thumbnailUrl: m.url,
         alt: m.caption || session?.focus || "UBa Judo Tatami Capture",
         caption: m.caption || session?.focus || "Mat practice at UBa Campus Amphi 100",
         category,

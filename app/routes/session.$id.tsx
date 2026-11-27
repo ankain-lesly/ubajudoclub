@@ -30,11 +30,12 @@ import Aura from "@/components/visual/Aura";
 import Reveal from "@/components/visual/Reveal";
 import SectionBackdrop from "@/components/visual/SectionBackdrop";
 import { VENUE } from "@/lib/data/club";
-import { getOgImageUrl, isVideoUrl } from "@/lib/media/cloudinary";
 import { env } from "@/lib/env";
 import defaultSessionCover from "@/assets/images/judo-practice.jpg";
 import { cn } from "@/lib/utils";
 import type { Route } from "./+types/session.$id";
+import heroImageDemo from "@/assets/images/judo-practice.jpg";
+import { isVideoUrl } from "@/lib/media/cloudinary";
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   const { session, others } = await getPublicSessionById(params.id, request);
@@ -81,14 +82,13 @@ export function meta({ loaderData }: Route.MetaArgs) {
   const { session } = loaderData;
   const isTodaySession = isToday(session.session_date);
 
-  // Get marked cover media, otherwise first image, otherwise first media
-  const selectedMedia =
-    session.media?.find((m) => m.is_cover) ??
-    session.media?.find((m) => m.media_type === "IMAGE") ??
-    session.media?.[0];
-  const firstMediaImage = selectedMedia
-    ? getOgImageUrl(selectedMedia.url, selectedMedia.media_type)
-    : `${env.siteUrl}/images/ubajudo-banner.jpg`;
+  const defaultImage = new URL(heroImageDemo, env.siteUrl).href;
+
+  // Get marked cover image, otherwise first image, otherwise default banner
+  const selectedImage =
+    session.media?.find((m) => m.is_cover && m.media_type !== "VIDEO") ??
+    session.media?.find((m) => m.media_type !== "VIDEO");
+  const firstMediaImage = selectedImage?.url || defaultImage;
   const title = `${isTodaySession ? "Today's Session " : ""}${session.focus || "Training Session"} — UBa Judo Club`;
 
   // Compact social description under 125 characters with high-converting CTA
@@ -109,19 +109,12 @@ export function meta({ loaderData }: Route.MetaArgs) {
     { property: "og:title", content: title },
     { property: "og:description", content: description },
     { property: "og:type", content: "article" },
-    ...(firstMediaImage
-      ? [
-          { property: "og:image", content: firstMediaImage },
-          { property: "og:image:width", content: "1200" },
-          { property: "og:image:height", content: "630" },
-          { property: "og:image:type", content: "image/jpeg" },
-          {
-            property: "og:image:alt",
-            content: `${isTodaySession ? "Today's Session " : ""}${session.focus || "Session"} — UBa Campus Amphi 100`,
-          },
-          { name: "twitter:image", content: firstMediaImage },
-        ]
-      : []),
+    { property: "og:image", content: firstMediaImage },
+    {
+      property: "og:image:alt",
+      content: `${isTodaySession ? "Today's Session " : ""}${session.focus || "Session"} — UBa Campus Amphi 100`,
+    },
+    { name: "twitter:image", content: firstMediaImage },
     { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:title", content: title },
     { name: "twitter:description", content: description },
@@ -237,6 +230,10 @@ const SessionDetail = ({ loaderData }: Route.ComponentProps) => {
   const notes =
     session?.notes ??
     "Attendance is logged immediately after final bow (Rei-ho). Ensure your clean white or blue judogi is folded neatly before stepping off the tatami. ";
+
+
+  const defaultVideoThumbnail = new URL(heroImageDemo, env.siteUrl).href;
+
   return (
     <>
       <section className="relative overflow-hidden border-b border-ink/10">
@@ -374,28 +371,23 @@ const SessionDetail = ({ loaderData }: Route.ComponentProps) => {
             <div>
               {firstMedia ? (
                 (() => {
-                  const isVideo =
-                    firstMedia.media_type === "VIDEO" ||
-                    isVideoUrl(firstMedia.url);
-                  const hasImageThumb =
-                    firstMedia.thumbnail_url &&
-                    !isVideoUrl(firstMedia.thumbnail_url);
+                  const isVideo = firstMedia.media_type === "VIDEO";
+                  const mediaThumbnail =
+                    firstMedia.thumbnail_url || defaultVideoThumbnail;
 
                   return (
                     <button
                       type="button"
-                      onClick={() => setActiveMediaIndex(coverIndex >= 0 ? coverIndex : 0)}
+                      onClick={() =>
+                        setActiveMediaIndex(coverIndex >= 0 ? coverIndex : 0)
+                      }
                       className="group relative w-full block text-left overflow-hidden rounded-2xl border border-ink/12 bg-band shadow-[0_30px_70px_-35px_rgba(20,21,15,0.7)] cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all hover:scale-[1.01] hover:border-ink/25"
                       aria-label={firstMedia.caption || "Open session gallery"}>
                       {isVideo ? (
                         <div className="relative h-[340px] w-full sm:h-[420px] bg-black">
                           <video
                             src={firstMedia.url}
-                            poster={
-                              hasImageThumb
-                                ? firstMedia.thumbnail_url!
-                                : undefined
-                            }
+                            poster={mediaThumbnail}
                             playsInline
                             preload="metadata"
                             className="pointer-events-none h-full w-full object-cover"
@@ -696,12 +688,7 @@ const SessionDetail = ({ loaderData }: Route.ComponentProps) => {
                   <video
                     key={activeMedia.url}
                     src={activeMedia.url}
-                    poster={
-                      activeMedia.thumbnail_url &&
-                      !isVideoUrl(activeMedia.thumbnail_url)
-                        ? activeMedia.thumbnail_url
-                        : undefined
-                    }
+                    poster={defaultVideoThumbnail}
                     controls
                     autoPlay
                     playsInline
@@ -748,10 +735,8 @@ const SessionDetail = ({ loaderData }: Route.ComponentProps) => {
             {session.media && session.media.length > 1 && (
               <div className="flex items-center justify-center gap-2 overflow-x-auto py-1">
                 {session.media.map((thumb, idx) => {
-                  const isThumbVideo =
-                    thumb.media_type === "VIDEO" || isVideoUrl(thumb.url);
-                  const hasImageThumb =
-                    thumb.thumbnail_url && !isVideoUrl(thumb.thumbnail_url);
+                  const isThumbVideo = thumb.media_type === "VIDEO"
+                  const hasImageThumb = thumb.thumbnail_url && isThumbVideo
 
                   return (
                     <button
@@ -768,6 +753,7 @@ const SessionDetail = ({ loaderData }: Route.ComponentProps) => {
                       {isThumbVideo && !hasImageThumb ? (
                         <video
                           src={thumb.url}
+
                           muted
                           preload="metadata"
                           className="h-full w-full object-cover"
